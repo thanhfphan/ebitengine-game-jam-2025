@@ -1,0 +1,40 @@
+{
+	"recipes": [
+		{
+			"id": "R_PHO",
+			"name": "Phở",
+			"requires": [
+				"I_BANHPHO",
+				"I_NUOCDUNG",
+				"I_THITBO"
+			],
+			"score": 10,
+			"difficulty": 2,
+			"icon": "pho.png"
+		},
+		{
+			"id": "R_GOICUON",
+			"name": "Gỏi cuốn",
+			"requires": [
+				"I_BANHTRANG",
+				"I_TOM",
+				"I_BUN",
+				"I_RAUSONG"
+			],
+			"score": 15,
+			"difficulty": 3,
+			"icon": "goicuon.png"
+		}, {
+			"id": "R_BUNBOHUT",
+			"name": "Bún bò hủ tíu",
+			"requires": [
+				"I_BUN",
+				"I_THITBO",
+				"I_NUOCDUNG"
+			],
+			"score": 20,
+			"difficulty": 4,
+			"icon": "bunbohut.png"
+		}
+	]
+}

@@ -1,0 +1,36 @@
+{
+	"ingredients": [
+		{
+			"id": "I_BANHPHO",
+			"name": "Bánh phở",
+			"rarity": "common",
+			"type": "noodle",
+			"effects": [],
+			"icon": "banhpho.png"
+		},
+		{
+			"id": "I_NUOCDUNG",
+			"name": "Nước dùng",
+			"rarity": "common",
+			"type": "broth",
+			"effects": [],
+			"icon": "nuocdung.png"
+		},
+		{
+			"id": "I_THITBO",
+			"name": "Thịt bò",
+			"rarity": "common",
+			"type": "meat",
+			"effects": [],
+			"icon": "thitbo.png"
+		},
+		{
+			"id": "I_BUN",
+			"name": "Bún",
+			"rarity": "common",
+			"type": "noodle",
+			"effects": [],
+			"icon": "bun.png"
+		}
+	]
+}

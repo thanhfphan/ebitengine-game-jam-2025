@@ -1,0 +1,30 @@
+version: '3'
+
+# Global variables
+vars:
+  BINARY_DIR: bin
+  GAME_BINARY: "{{.BINARY_DIR}}/game"
+  GO_FLAGS: '-ldflags="-s -w"'
+
+tasks:
+  default:
+    desc: Build game
+    cmds:
+      - task: build
+  
+  build:
+    desc: Build game executable
+    cmds:
+      - mkdir -p {{.BINARY_DIR}}
+      - echo "Building game..."
+      - go build {{.GO_FLAGS}} -o {{.GAME_BINARY}} cmd/main.go
+      - echo "Build complete!"
+    generate:
+      - {{.GAME_BINARY}}
+
+  run:
+    desc: Run game
+    cmds:
+      # - task: build
+      - echo "Running game..."
+      - go run cmd/main.go
