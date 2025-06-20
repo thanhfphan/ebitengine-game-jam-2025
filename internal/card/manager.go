@@ -4,6 +4,7 @@ import (
 	crand "crypto/rand"
 	"encoding/binary"
 	"encoding/json"
+	"fmt"
 	mrand "math/rand"
 	"os"
 	"sort"
@@ -107,6 +108,10 @@ func (m *Manager) DealHands(players []*entity.Player) {
 
 func (m *Manager) PlayCard(player *entity.Player, handIndex int) error {
 	removeCard := player.RemoveCardAt(handIndex)
+	if removeCard == nil {
+		return fmt.Errorf("invalid card index: %d", handIndex)
+	}
+
 	m.TableStack.AddCard(removeCard)
 	if m.OnPlayCard != nil {
 		m.OnPlayCard(player, removeCard)

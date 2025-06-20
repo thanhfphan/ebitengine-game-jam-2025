@@ -67,25 +67,61 @@ func New() (*Game, error) {
 	g.AssetManager.LoadFont("default", fonts.MPlus1pRegular_ttf, 24)
 	defaultFont := g.AssetManager.GetFont("default")
 
+	// Setup table UI
 	table := ui.NewUICircle(640, 360, 290)
 	table.SetVisible(true)
 	g.UIManager.AddElement(table)
 
-	passBtn := ui.NewUIButton(600, 400, 70, 90, "Pass", defaultFont)
+	// Setup player hand UI
+	playerHand := ui.NewUIHand(320, 550, 640, 150)
+	playerHand.SetVisible(true)
+	playerHand.SetOnPlayCard(func(cardIndex int) {
+		if g.Player != nil {
+			g.PlayCard(g.Player.ID, cardIndex)
+		}
+	})
+	g.UIManager.AddElement(playerHand)
+
+	// Setup buttons
+	passBtn := ui.NewUIButton(750, 550, 100, 40, "Pass", defaultFont)
 	passBtn.SetVisible(true)
+	passBtn.OnClick = func() {
+		if g.Player != nil {
+			g.Pass(g.Player.ID)
+		}
+	}
 	g.UIManager.AddElement(passBtn)
 
-	playBtn := ui.NewUIButton(500, 400, 70, 90, "Play", defaultFont)
+	playBtn := ui.NewUIButton(750, 600, 100, 40, "Play", defaultFont)
 	playBtn.SetVisible(true)
+	playBtn.OnClick = func() {
+		fmt.Println("Playing card from button")
+		playerHand.PlaySelected()
+	}
 	g.UIManager.AddElement(playBtn)
 
 	newGameBtn := ui.NewUIButton(500, 300, 150, 50, "New Game", defaultFont)
-	playBtn.SetVisible(true)
+	newGameBtn.SetVisible(false) // Only show in main menu
+	newGameBtn.OnClick = func() {
+		g.setupSoloMatch(3)
+		g.State = GameStatePlaying
+	}
 	g.UIManager.AddElement(newGameBtn)
 
 	// Quick test
+	g.setupSoloMatch(2)
 
-	g.setupSoloMatch(3)
+	// TODO: Pre-load all card images
+	cardImages := make(map[string]*ebiten.Image)
+	for _, card := range g.Player.Hand {
+		cardImg := g.AssetManager.GetCardImage(card.ID)
+		if cardImg == nil {
+			cardImg = ebiten.NewImage(80, 120)
+		}
+		cardImages[card.ID] = cardImg
+	}
+
+	playerHand.SetCards(g.Player.Hand, cardImages)
 
 	return g, nil
 }
@@ -118,6 +154,7 @@ func (g *Game) Update() error {
 	case GameStateMainMenu:
 		g.UpdateMainMenu()
 	case GameStatePlaying:
+		g.UIManager.Update()
 		g.UpdatePlaying()
 	}
 
@@ -151,18 +188,19 @@ func (g *Game) UpdateMainMenu() {
 }
 
 func (g *Game) UpdatePlaying() {
+	// TODO: improve this one
+	if winnerOrder := g.TurnManager.FinishedOrder(); len(winnerOrder) > 0 {
+		fmt.Println("Game finished. Winner order:", winnerOrder)
+		g.State = GameStateMainMenu
+		return
+	}
+
 	current := g.TurnManager.Current()
 	if current == nil {
 		return
 	}
 	if current.IsBot {
 		g.AIManager.OnTurn(current.ID, g)
-	}
-
-	// TODO: improve this one
-	if winnerOrder := g.TurnManager.FinishedOrder(); len(winnerOrder) > 0 {
-		fmt.Println("Game finished. Winner order:", winnerOrder)
-		g.State = GameStateMainMenu
 	}
 }
 
@@ -194,6 +232,16 @@ func (g *Game) HandleInput() {
 		if err := g.PlayCard(current.ID, 0); err != nil {
 			fmt.Println("Error playing card:", err)
 		}
+	}
+
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+		mx, my := ebiten.CursorPosition()
+		g.UIManager.HandleMouseDown(mx, my)
+	}
+
+	if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) {
+		mx, my := ebiten.CursorPosition()
+		g.UIManager.HandleMouseUp(mx, my)
 	}
 }
 
@@ -254,10 +302,6 @@ func (g *Game) PlayCard(playerID string, cardIdx int) error {
 
 	if player != nil && len(player.Hand) == 0 {
 		g.TurnManager.MarkFinished(playerID)
-	}
-
-	for _, p := range g.Players {
-		fmt.Println(p, "Hand:", p.Hand)
 	}
 
 	g.TurnManager.Next()

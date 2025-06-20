@@ -3,6 +3,7 @@ package am
 import (
 	"fmt"
 
+	"github.com/hajimehoshi/ebiten/v2"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/opentype"
 )
@@ -39,4 +40,10 @@ func (am *AssetManager) LoadFont(name string, data []byte, size float64) error {
 
 func (am *AssetManager) GetFont(name string) font.Face {
 	return am.fonts[name]
+}
+
+func (am *AssetManager) GetCardImage(cardID string) *ebiten.Image {
+	// TODO: Implement actual image loading
+	img := ebiten.NewImage(80, 120)
+	return img
 }

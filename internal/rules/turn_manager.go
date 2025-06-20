@@ -34,7 +34,7 @@ func (tm *TurnManager) AddPlayer(id string, isBot bool) {
 
 func (tm *TurnManager) Reset() {
 	tm.index = 0
-	tm.order = nil
+	tm.order = []string{}
 	for _, p := range tm.players {
 		p.Passed = false
 		p.Finished = false
