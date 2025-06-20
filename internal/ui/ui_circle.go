@@ -7,9 +7,9 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
-var _ Element = (*UICircle)(nil)
+var _ Element = (*UITable)(nil)
 
-type UICircle struct {
+type UITable struct {
 	X, Y   int // Center point
 	Radius int
 
@@ -24,8 +24,8 @@ type UICircle struct {
 	OnClick   func()
 }
 
-func NewUICircle(x, y, r int) *UICircle {
-	return &UICircle{
+func NewUITable(x, y, r int) *UITable {
+	return &UITable{
 		X:               x,
 		Y:               y,
 		Radius:          r,
@@ -35,7 +35,7 @@ func NewUICircle(x, y, r int) *UICircle {
 	}
 }
 
-func (u *UICircle) Update() {
+func (u *UITable) Update() {
 	if !u.Visible {
 		return
 	}
@@ -44,7 +44,7 @@ func (u *UICircle) Update() {
 	u.IsPressed = u.IsHovered && ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft)
 }
 
-func (u *UICircle) Draw(screen *ebiten.Image) {
+func (u *UITable) Draw(screen *ebiten.Image) {
 	if !u.Visible {
 		return
 	}
@@ -58,7 +58,7 @@ func (u *UICircle) Draw(screen *ebiten.Image) {
 	vector.StrokeCircle(screen, cx, cy, r, 1, u.BorderColor, false)
 }
 
-func (u *UICircle) Contains(x, y int) bool {
+func (u *UITable) Contains(x, y int) bool {
 	if !u.Visible {
 		return false
 	}
@@ -67,11 +67,11 @@ func (u *UICircle) Contains(x, y int) bool {
 	return dx*dx+dy*dy <= float64(u.Radius*u.Radius)
 }
 
-func (u *UICircle) HandleMouseDown(x, y int) bool {
+func (u *UITable) HandleMouseDown(x, y int) bool {
 	return u.Contains(x, y)
 }
 
-func (u *UICircle) HandleMouseUp(x, y int) bool {
+func (u *UITable) HandleMouseUp(x, y int) bool {
 	if u.Contains(x, y) && u.IsPressed {
 		if u.OnClick != nil {
 			u.OnClick()
@@ -81,18 +81,12 @@ func (u *UICircle) HandleMouseUp(x, y int) bool {
 	return false
 }
 
-func (u *UICircle) GetZIndex() int {
-	return u.ZIndex
-}
+func (u *UITable) GetZIndex() int { return u.ZIndex }
 
-func (u *UICircle) IsVisible() bool {
-	return u.Visible
-}
+func (u *UITable) IsVisible() bool { return u.Visible }
 
-func (u *UICircle) SetVisible(v bool) {
-	u.Visible = v
-}
+func (u *UITable) SetVisible(v bool) { u.Visible = v }
 
-func (u *UICircle) SetZIndex(z int) {
-	u.ZIndex = z
-}
+func (u *UITable) SetZIndex(z int) { u.ZIndex = z }
+
+func (b *UITable) IsStatic() bool { return true }

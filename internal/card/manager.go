@@ -60,14 +60,20 @@ func (m *Manager) LoadDeck(theme string) error {
 	}
 
 	for _, ing := range ingFile.Ingredients {
-		card := &entity.Card{
-			Entity: entity.Entity{
-				ID:   ing.ID,
-				Name: ing.Name,
-			},
-			Type: entity.CardIngredient,
+		c := ing.Copies
+		if c <= 0 {
+			c = 1
 		}
-		m.Deck = append(m.Deck, card)
+		for i := 0; i < c; i++ {
+			card := &entity.Card{
+				Entity: entity.Entity{
+					ID:   ing.ID,
+					Name: ing.Name,
+				},
+				Type: entity.CardIngredient,
+			}
+			m.Deck = append(m.Deck, card)
+		}
 	}
 
 	for _, r := range rcpFile.Recipes {
@@ -100,16 +106,18 @@ func (m *Manager) DealHands(players []*entity.Player) {
 	for i, p := range players {
 		start := i * perPlayer
 		end := start + perPlayer
+		end = min(end, len(m.Deck))
 		for _, card := range m.Deck[start:end] {
 			p.AddCard(card)
 		}
 	}
 }
 
-func (m *Manager) PlayCard(player *entity.Player, handIndex int) error {
+func (m *Manager) PlayCard(player *entity.Player, handIndex int) bool {
 	removeCard := player.RemoveCardAt(handIndex)
 	if removeCard == nil {
-		return fmt.Errorf("invalid card index: %d", handIndex)
+		fmt.Println("PlayCard: invalid card index:", handIndex)
+		return false
 	}
 
 	m.TableStack.AddCard(removeCard)
@@ -117,10 +125,12 @@ func (m *Manager) PlayCard(player *entity.Player, handIndex int) error {
 		m.OnPlayCard(player, removeCard)
 	}
 
+	hasDish := false
 	for m.TryMakeDish() {
+		hasDish = true
 	}
 
-	return nil
+	return hasDish
 }
 
 func (m *Manager) TryMakeDish() bool {

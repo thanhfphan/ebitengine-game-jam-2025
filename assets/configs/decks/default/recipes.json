@@ -13,6 +13,18 @@
 			"icon": "pho.png"
 		},
 		{
+			"id": "R_BUNBO",
+			"name": "Bún bò",
+			"requires": [
+				"I_BUN",
+				"I_NUOCDUNG",
+				"I_THITBO"
+			],
+			"score": 11,
+			"difficulty": 2,
+			"icon": "bunbo.png"
+		},
+		{
 			"id": "R_GOICUON",
 			"name": "Gỏi cuốn",
 			"requires": [
@@ -21,20 +33,21 @@
 				"I_BUN",
 				"I_RAUSONG"
 			],
-			"score": 15,
+			"score": 13,
 			"difficulty": 3,
 			"icon": "goicuon.png"
-		}, {
-			"id": "R_BUNBOHUT",
-			"name": "Bún bò hủ tíu",
+		},
+		{
+			"id": "R_BANHMI",
+			"name": "Bánh mì thịt",
 			"requires": [
-				"I_BUN",
-				"I_THITBO",
-				"I_NUOCDUNG"
+				"I_BANHMI",
+				"I_THITHEO",
+				"I_RAUSONG"
 			],
-			"score": 20,
-			"difficulty": 4,
-			"icon": "bunbohut.png"
+			"score": 12,
+			"difficulty": 2,
+			"icon": "banhmi_thit.png"
 		}
 	]
 }

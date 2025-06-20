@@ -36,37 +36,37 @@ func NewUIHand(x, y, width, height int) *UIHand {
 	}
 }
 
-func (h *UIHand) SetCards(cards []*entity.Card, cardImages map[string]*ebiten.Image) {
-	h.Cards = []*UICard{}
+// func (h *UIHand) SetCards(cards []*entity.Card, cardImages map[string]*ebiten.Image) {
+// 	h.Cards = []*UICard{}
 
-	if len(cards) == 0 {
-		return
-	}
+// 	if len(cards) == 0 {
+// 		return
+// 	}
 
-	cardWidth := 80
-	cardHeight := 120
+// 	cardWidth := 80
+// 	cardHeight := 120
 
-	// Adjust spacing based on number of cards
-	availableWidth := h.Width - cardWidth
-	if len(cards) > 1 {
-		h.Spacing = min(h.Spacing, availableWidth/(len(cards)-1))
-	}
+// 	// Adjust spacing based on number of cards
+// 	availableWidth := h.Width - cardWidth
+// 	if len(cards) > 1 {
+// 		h.Spacing = min(h.Spacing, availableWidth/(len(cards)-1))
+// 	}
 
-	for i, card := range cards {
-		img := cardImages[card.ID]
-		if img == nil {
-			fmt.Println("Card image not found for ID:", card.ID)
-			// TODO: Use a default/placeholder image if specific card image not found
-			continue
-		}
+// 	for i, card := range cards {
+// 		img := cardImages[card.ID]
+// 		if img == nil {
+// 			fmt.Println("Card image not found for ID:", card.ID)
+// 			// TODO: Use a default/placeholder image if specific card image not found
+// 			continue
+// 		}
 
-		uiCard := NewUICard(card.ID, img, cardWidth, cardHeight)
-		uiCard.X = h.X + i*(cardWidth+h.Spacing)
-		uiCard.Y = h.Y
+// 		uiCard := NewUICard(card.ID, img, cardWidth, cardHeight)
+// 		uiCard.X = h.X + i*(cardWidth+h.Spacing)
+// 		uiCard.Y = h.Y
 
-		h.Cards = append(h.Cards, uiCard)
-	}
-}
+// 		h.Cards = append(h.Cards, uiCard)
+// 	}
+// }
 
 func (h *UIHand) Update() {
 	if !h.visible {
@@ -189,4 +189,71 @@ func (h *UIHand) GetZIndex() int {
 
 func (h *UIHand) SetZIndex(z int) {
 	h.zIndex = z
+}
+
+func (h *UIHand) UpdateCards(cards []*entity.Card, cardImages map[string]*ebiten.Image) {
+	if len(cards) == 0 {
+		h.Cards = []*UICard{}
+		h.selectedCard = nil
+		return
+	}
+
+	cardWidth := 80
+	cardHeight := 120
+
+	availableWidth := h.Width - cardWidth
+	if len(cards) > 1 {
+		h.Spacing = min(h.Spacing, availableWidth/(len(cards)-1))
+	}
+
+	existingCards := make(map[string]*UICard)
+	for _, card := range h.Cards {
+		existingCards[card.ID] = card
+	}
+
+	newCards := make([]*UICard, 0, len(cards))
+	for i, card := range cards {
+		var uiCard *UICard
+
+		if existing, ok := existingCards[card.ID]; ok {
+			uiCard = existing
+			if img := cardImages[card.ID]; img != nil {
+				uiCard.Image = img
+			}
+		} else {
+			img := cardImages[card.ID]
+			if img == nil {
+				fmt.Println("Card image not found for ID:", card.ID)
+				continue
+			}
+			uiCard = NewUICard(card.ID, img, cardWidth, cardHeight)
+		}
+
+		uiCard.X = h.X + i*(cardWidth+h.Spacing)
+
+		if uiCard != h.selectedCard {
+			uiCard.Y = h.Y
+		}
+
+		newCards = append(newCards, uiCard)
+	}
+
+	if h.selectedCard != nil {
+		stillExists := false
+		for _, card := range newCards {
+			if card == h.selectedCard {
+				stillExists = true
+				break
+			}
+		}
+		if !stillExists {
+			h.selectedCard = nil
+		}
+	}
+
+	h.Cards = newCards
+}
+
+func (h *UIHand) IsStatic() bool {
+	return false
 }

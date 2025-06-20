@@ -57,7 +57,9 @@ func (m *Manager) HandleMouseDown(x, y int) bool {
 		element := m.Elements[i]
 		if element.IsVisible() && element.Contains(x, y) {
 			if element.HandleMouseDown(x, y) {
-				m.BringToFront(element)
+				if !element.IsStatic() {
+					m.BringToFront(element)
+				}
 				m.ActiveElement = element
 				return true
 			}

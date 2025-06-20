@@ -103,18 +103,12 @@ func (b *UIButton) HandleMouseUp(x, y int) bool {
 	return false
 }
 
-func (b *UIButton) IsVisible() bool {
-	return b.Visible
-}
+func (b *UIButton) IsVisible() bool { return b.Visible }
 
-func (b *UIButton) SetVisible(visible bool) {
-	b.Visible = visible
-}
+func (b *UIButton) SetVisible(visible bool) { b.Visible = visible }
 
-func (b *UIButton) GetZIndex() int {
-	return b.ZIndex
-}
+func (b *UIButton) GetZIndex() int { return b.ZIndex }
 
-func (b *UIButton) SetZIndex(zIndex int) {
-	b.ZIndex = zIndex
-}
+func (b *UIButton) SetZIndex(zIndex int) { b.ZIndex = zIndex }
+
+func (b *UIButton) IsStatic() bool { return false }

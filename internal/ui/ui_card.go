@@ -97,3 +97,4 @@ func (c *UICard) IsVisible() bool   { return c.visible }
 func (c *UICard) SetVisible(v bool) { c.visible = v }
 func (c *UICard) GetZIndex() int    { return c.zIndex }
 func (c *UICard) SetZIndex(z int)   { c.zIndex = z }
+func (c *UICard) IsStatic() bool    { return false }

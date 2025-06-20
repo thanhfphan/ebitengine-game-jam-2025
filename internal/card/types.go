@@ -7,6 +7,7 @@ type IngredientConfig struct {
 	Type    string   `json:"type"`
 	Effects []string `json:"effects"`
 	Icon    string   `json:"icon"`
+	Copies  int      `json:"copies"`
 }
 
 type RecipeConfig struct {

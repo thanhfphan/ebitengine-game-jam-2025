@@ -12,4 +12,5 @@ type Element interface {
 	HandleMouseUp(x, y int) bool
 	GetZIndex() int
 	SetZIndex(int)
+	IsStatic() bool
 }

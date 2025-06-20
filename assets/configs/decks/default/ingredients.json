@@ -2,35 +2,84 @@
 	"ingredients": [
 		{
 			"id": "I_BANHPHO",
-			"name": "Bánh phở",
+			"name": "Banhpho",
 			"rarity": "common",
-			"type": "noodle",
+			"type": "unknown",
 			"effects": [],
-			"icon": "banhpho.png"
+			"icon": "i_banhpho.png",
+			"copies": 4
 		},
 		{
 			"id": "I_NUOCDUNG",
-			"name": "Nước dùng",
+			"name": "Nuocdung",
 			"rarity": "common",
-			"type": "broth",
+			"type": "unknown",
 			"effects": [],
-			"icon": "nuocdung.png"
+			"icon": "i_nuocdung.png",
+			"copies": 2
 		},
 		{
 			"id": "I_THITBO",
-			"name": "Thịt bò",
+			"name": "Thitbo",
 			"rarity": "common",
-			"type": "meat",
+			"type": "unknown",
 			"effects": [],
-			"icon": "thitbo.png"
+			"icon": "i_thitbo.png",
+			"copies": 2
 		},
 		{
 			"id": "I_BUN",
-			"name": "Bún",
+			"name": "Bun",
 			"rarity": "common",
-			"type": "noodle",
+			"type": "unknown",
 			"effects": [],
-			"icon": "bun.png"
+			"icon": "i_bun.png",
+			"copies": 2
+		},
+		{
+			"id": "I_BANHTRANG",
+			"name": "Banhtrang",
+			"rarity": "common",
+			"type": "unknown",
+			"effects": [],
+			"icon": "i_banhtrang.png",
+			"copies": 1
+		},
+		{
+			"id": "I_TOM",
+			"name": "Tom",
+			"rarity": "common",
+			"type": "unknown",
+			"effects": [],
+			"icon": "i_tom.png",
+			"copies": 1
+		},
+		{
+			"id": "I_RAUSONG",
+			"name": "Rausong",
+			"rarity": "common",
+			"type": "unknown",
+			"effects": [],
+			"icon": "i_rausong.png",
+			"copies": 2
+		},
+		{
+			"id": "I_BANHMI",
+			"name": "Banhmi",
+			"rarity": "common",
+			"type": "unknown",
+			"effects": [],
+			"icon": "i_banhmi.png",
+			"copies": 1
+		},
+		{
+			"id": "I_THITHEO",
+			"name": "Thitheo",
+			"rarity": "common",
+			"type": "unknown",
+			"effects": [],
+			"icon": "i_thitheo.png",
+			"copies": 1
 		}
 	]
 }
