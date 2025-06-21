@@ -47,8 +47,7 @@ func New() (*Game, error) {
 	turnManager := rules.NewTurnManager()
 
 	g := &Game{
-		// State:        GameStateMainMenu,
-		State:        GameStatePlaying,
+		State:        GameStateMainMenu,
 		CurrentTurn:  0,
 		Players:      []*entity.Player{},
 		BotHands:     []*ui.UIBotHand{},
@@ -103,16 +102,38 @@ func New() (*Game, error) {
 	}
 	g.UIManager.AddElement(playBtn)
 
-	newGameBtn := ui.NewUIButton(500, 300, 150, 50, "New Game", defaultFont)
-	newGameBtn.SetVisible(false) // Only show in main menu
+	menuTitle := ui.NewUIButton(640, 200, 300, 60, "Food Cards", defaultFont)
+	menuTitle.SetVisible(true)
+	menuTitle.BackgroundColor = color.RGBA{0, 0, 0, 0}
+	menuTitle.TextColor = color.RGBA{255, 255, 0, 255} // Yellow text
+	g.UIManager.AddElement(menuTitle)
+
+	newGameBtn := ui.NewUIButton(640, 300, 200, 50, "New Game", defaultFont)
+	newGameBtn.SetVisible(true)
 	newGameBtn.OnClick = func() {
 		g.setupSoloMatch(3)
 		g.State = GameStatePlaying
+		g.updateElementsVisibility()
 	}
 	g.UIManager.AddElement(newGameBtn)
 
-	// Quick test
-	g.setupSoloMatch(3)
+	settingsBtn := ui.NewUIButton(640, 370, 200, 50, "Settings", defaultFont)
+	settingsBtn.SetVisible(true)
+	settingsBtn.OnClick = func() {
+		g.State = GameStateSettings
+		g.updateElementsVisibility()
+	}
+	g.UIManager.AddElement(settingsBtn)
+
+	quitBtn := ui.NewUIButton(640, 440, 200, 50, "Quit", defaultFont)
+	quitBtn.SetVisible(true)
+	quitBtn.OnClick = func() {
+		// Signal to close the game
+		g.State = GameStateQuit
+	}
+	g.UIManager.AddElement(quitBtn)
+
+	g.updateElementsVisibility()
 
 	return g, nil
 }
@@ -169,6 +190,11 @@ func (g *Game) Update() error {
 	case GameStatePlaying:
 		g.UIManager.Update()
 		g.UpdatePlaying()
+	case GameStateSettings:
+		g.UIManager.Update()
+		g.UpdateSettings()
+	case GameStateQuit:
+		return ebiten.Termination
 	}
 
 	g.Renderer.Update()
@@ -185,6 +211,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		g.DrawMainMenu(screen)
 	case GameStatePlaying:
 		g.DrawPlaying(screen)
+	case GameStateSettings:
+		g.DrawSettings(screen)
 	}
 
 }
@@ -195,9 +223,11 @@ func (g *Game) Layout(outsideWidth int, outsideHeight int) (int, int) {
 }
 
 func (g *Game) UpdateMainMenu() {
-	if inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
-		g.State = GameStatePlaying
-	}
+	g.UIManager.Update()
+}
+
+func (g *Game) UpdateSettings() {
+	// TODO: implement
 }
 
 func (g *Game) UpdatePlayerHand() {
@@ -249,6 +279,7 @@ func (g *Game) UpdatePlaying() {
 	if winnerOrder := g.TurnManager.FinishedOrder(); len(winnerOrder) > 0 {
 		fmt.Println("Game finished. Winner order:", winnerOrder)
 		g.State = GameStateMainMenu
+		g.updateElementsVisibility()
 		return
 	}
 
@@ -258,7 +289,7 @@ func (g *Game) UpdatePlaying() {
 }
 
 func (g *Game) DrawMainMenu(screen *ebiten.Image) {
-	g.Renderer.DrawDebug(screen, "Main Menu - press <Enter> to start solo game")
+	g.UIManager.Draw(screen)
 }
 
 func (g *Game) DrawPlaying(screen *ebiten.Image) {
@@ -272,18 +303,28 @@ func (g *Game) DrawPlaying(screen *ebiten.Image) {
 	}
 }
 
+func (g *Game) DrawSettings(screen *ebiten.Image) {
+	g.Renderer.DrawDebug(screen, "Settings Menu - Press ESC to return to main menu")
+	g.UIManager.Draw(screen)
+}
+
 func (g *Game) HandleInput() {
 	if inpututil.IsKeyJustPressed(ebiten.KeyK) {
 		g.DebugMode = !g.DebugMode
 	}
 
-	current := g.TurnManager.Current()
-	if current == nil {
-		return
+	// ESC key to return to main menu from settings
+	if g.State == GameStateSettings && inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
+		g.State = GameStateMainMenu
+		g.updateElementsVisibility()
 	}
-	if !current.IsBot && inpututil.IsKeyJustPressed(ebiten.KeySpace) {
-		if err := g.PlayCard(current.ID, 0); err != nil {
-			fmt.Println("Error playing card:", err)
+
+	if g.State == GameStatePlaying {
+		current := g.TurnManager.Current()
+		if current != nil && !current.IsBot && inpututil.IsKeyJustPressed(ebiten.KeySpace) {
+			if err := g.PlayCard(current.ID, 0); err != nil {
+				fmt.Println("Error playing card:", err)
+			}
 		}
 	}
 
@@ -368,4 +409,25 @@ func (g *Game) GetPlayer(id string) *entity.Player {
 		}
 	}
 	return nil
+}
+
+func (g *Game) updateElementsVisibility() {
+	// Hide/show elements based on current game state
+	for _, element := range g.UIManager.Elements {
+		switch btn := element.(type) {
+		case *ui.UIButton:
+			if btn.Text == "New Game" || btn.Text == "Settings" || btn.Text == "Quit" || btn.Text == "Food Cards" {
+				btn.SetVisible(g.State == GameStateMainMenu)
+			}
+			if btn.Text == "Pass" || btn.Text == "Play" {
+				btn.SetVisible(g.State == GameStatePlaying)
+			}
+		case *ui.UIHand:
+			btn.SetVisible(g.State == GameStatePlaying)
+		case *ui.UIBotHand:
+			btn.SetVisible(g.State == GameStatePlaying)
+		case *ui.UITable:
+			btn.SetVisible(g.State == GameStatePlaying)
+		}
+	}
 }
