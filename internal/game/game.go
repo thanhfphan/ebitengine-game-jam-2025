@@ -17,16 +17,18 @@ import (
 	"github.com/thanhfphan/ebitengj2025/internal/world"
 )
 
-var _ ebiten.Game = (*Game)(nil)
+var (
+	_ ebiten.Game = (*Game)(nil)
+	_ ai.GameLike = (*Game)(nil)
+)
 
 type Game struct {
-	State       GameState
-	CurrentTurn int
-	Players     []*entity.Player
-	Player      *entity.Player
-	PlayerHand  *ui.UIHand
-	BotHands    []*ui.UIBotHand
-	DebugMode   bool
+	State      GameState
+	Players    []*entity.Player
+	Player     *entity.Player
+	PlayerHand *ui.UIHand
+	BotHands   []*ui.UIBotHand
+	DebugMode  bool
 
 	AssetManager *am.AssetManager
 	Renderer     *renderer.Renderer
@@ -48,7 +50,6 @@ func New() (*Game, error) {
 
 	g := &Game{
 		State:        GameStateMainMenu,
-		CurrentTurn:  0,
 		Players:      []*entity.Player{},
 		BotHands:     []*ui.UIBotHand{},
 		AssetManager: assetManager,
@@ -188,15 +189,14 @@ func (g *Game) Update() error {
 	case GameStateMainMenu:
 		g.UpdateMainMenu()
 	case GameStatePlaying:
-		g.UIManager.Update()
 		g.UpdatePlaying()
 	case GameStateSettings:
-		g.UIManager.Update()
 		g.UpdateSettings()
 	case GameStateQuit:
 		return ebiten.Termination
 	}
 
+	g.UIManager.Update()
 	g.Renderer.Update()
 
 	return nil
@@ -339,15 +339,7 @@ func (g *Game) HandleInput() {
 	}
 }
 
-func (g *Game) NextTurn() {
-	g.CurrentTurn = (g.CurrentTurn + 1) % len(g.Players)
-
-	player := g.Players[g.CurrentTurn]
-	if player.IsBot() {
-		g.AIManager.OnTurn(player.ID, g) // Automatically play the bot's turn
-	}
-}
-
+// GetPlayerState implements ai.GameLike.
 func (g *Game) GetPlayerState(id string) *ai.PlayerState {
 	playerTurn := g.TurnManager.GetPlayerByID(id)
 	if playerTurn == nil {
@@ -365,6 +357,7 @@ func (g *Game) GetPlayerState(id string) *ai.PlayerState {
 	}
 }
 
+// Pass implements ai.GameLike.
 func (g *Game) Pass(playerID string) {
 	current := g.TurnManager.Current()
 	if current == nil || current.ID != playerID || current.Finished {
@@ -379,6 +372,7 @@ func (g *Game) Pass(playerID string) {
 	g.TurnManager.Next()
 }
 
+// PlayCard implements ai.GameLike.
 func (g *Game) PlayCard(playerID string, cardIdx int) error {
 	current := g.TurnManager.Current()
 	if current == nil || current.ID != playerID || current.Finished {
