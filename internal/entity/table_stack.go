@@ -1,28 +1,32 @@
 package entity
 
 type TableStack struct {
-	Receipes    []*Card
-	Ingredients []*Card
+	Receipes      []*Card
+	Ingredients   []*Card
+	PlayerCardMap map[string][]string // playerID -> list of cardIDs
 }
 
 func NewTableStack() *TableStack {
 	return &TableStack{
-		Receipes:    []*Card{},
-		Ingredients: []*Card{},
+		Receipes:      []*Card{},
+		Ingredients:   []*Card{},
+		PlayerCardMap: make(map[string][]string),
 	}
 }
 
 func (t *TableStack) Clear() {
 	t.Receipes = []*Card{}
 	t.Ingredients = []*Card{}
+	t.PlayerCardMap = make(map[string][]string)
 }
 
-func (t *TableStack) AddCard(card *Card) {
+func (t *TableStack) AddCard(card *Card, playerID string) {
 	if card.Type == CardRecipe {
 		t.AddReceipe(card)
 	} else {
 		t.AddIngredient(card)
 	}
+	t.PlayerCardMap[playerID] = append(t.PlayerCardMap[playerID], card.ID)
 }
 
 func (t *TableStack) AddReceipe(card *Card) {
@@ -69,4 +73,35 @@ func (t *TableStack) RemoveIngredientAt(idx int) *Card {
 	removeCard := t.Ingredients[idx]
 	t.Ingredients = append(t.Ingredients[:idx], t.Ingredients[idx+1:]...)
 	return removeCard
+}
+
+// HasPlayerCards checks if a player still has any cards on the table
+func (t *TableStack) HasPlayerCards(playerID string) bool {
+	// Get all card IDs played by this player
+	cardIDs, exists := t.PlayerCardMap[playerID]
+	if !exists || len(cardIDs) == 0 {
+		return false
+	}
+
+	// Check if any of those cards are still on the table
+	for _, cardID := range cardIDs {
+		for _, card := range t.Ingredients {
+			if card.ID == cardID {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func (t *TableStack) RemoveCardFromPlayerTracking(cardID string) {
+	for playerID, cardIDs := range t.PlayerCardMap {
+		for i, id := range cardIDs {
+			if id == cardID {
+				t.PlayerCardMap[playerID] = append(cardIDs[:i], cardIDs[i+1:]...)
+				break
+			}
+		}
+	}
 }

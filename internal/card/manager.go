@@ -99,36 +99,27 @@ func (m *Manager) shuffle(cards []*entity.Card) {
 }
 
 func (m *Manager) DealHands(players []*entity.Player) {
-	// equal distribution
-	perPlayer := len(m.Deck) / len(players)
-	for i, p := range players {
-		start := i * perPlayer
-		end := start + perPlayer
-		end = min(end, len(m.Deck))
-		for _, card := range m.Deck[start:end] {
-			p.AddCard(card)
-		}
+	j := 0
+	numPlayers := len(players)
+	for _, card := range m.Deck {
+		players[j%numPlayers].AddCard(card)
+		j++
 	}
 }
 
-func (m *Manager) PlayCard(player *entity.Player, handIndex int) bool {
+func (m *Manager) PlayCard(player *entity.Player, handIndex int) error {
 	removeCard := player.RemoveCardAt(handIndex)
 	if removeCard == nil {
-		fmt.Println("PlayCard: invalid card index:", handIndex)
-		return false
+		return fmt.Errorf("invalid card index: %d", handIndex)
 	}
 
-	m.TableStack.AddCard(removeCard)
+	m.TableStack.AddCard(removeCard, player.ID)
+
 	if m.OnPlayCard != nil {
 		m.OnPlayCard(player, removeCard)
 	}
 
-	hasDish := false
-	for m.TryMakeDish() {
-		hasDish = true
-	}
-
-	return hasDish
+	return nil
 }
 
 func (m *Manager) TryMakeDish() bool {
@@ -146,10 +137,12 @@ func (m *Manager) TryMakeDish() bool {
 		}
 
 		var usedIngIdx []int
+		var usedCardIDs []string
 		for iIdx, card := range m.TableStack.Ingredients {
 			if cnt, ok := need[card.IngredientID]; ok && cnt > 0 {
 				need[card.IngredientID]--
 				usedIngIdx = append(usedIngIdx, iIdx)
+				usedCardIDs = append(usedCardIDs, card.ID)
 			}
 		}
 
@@ -168,6 +161,9 @@ func (m *Manager) TryMakeDish() bool {
 		sort.Sort(sort.Reverse(sort.IntSlice(usedIngIdx)))
 		for _, idx := range usedIngIdx {
 			m.TableStack.RemoveIngredientAt(idx)
+		}
+		for _, cardID := range usedCardIDs {
+			m.TableStack.RemoveCardFromPlayerTracking(cardID)
 		}
 
 		if m.OnDishMade != nil {

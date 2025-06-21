@@ -90,7 +90,7 @@ func (s *PlayingScene) Exit(g *Game) {
 
 func (s *PlayingScene) Update(g *Game) {
 	// Check for game over
-	if winnerOrder := g.TurnManager.FinishedOrder(); len(winnerOrder) > 0 {
+	if winnerOrder := g.TurnManager.FinishedOrder(); len(winnerOrder) == len(g.Players) {
 		fmt.Println("Game finished. Winner order:", winnerOrder)
 		g.SetScene(NewMainMenuScene())
 		return

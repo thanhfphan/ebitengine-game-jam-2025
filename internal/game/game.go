@@ -64,7 +64,7 @@ func New() (*Game, error) {
 		fmt.Println("Recipe made:", recipe.Name)
 	}
 	cardManager.OnPlayCard = func(player *entity.Player, card *entity.Card) {
-		fmt.Println("Card played:", card.Name, "by", player.Name)
+		fmt.Println("Card played:", card.Name, "by", player.Name, "(", player.ID, ")")
 	}
 
 	g.AssetManager.LoadFont("default", fonts.MPlus1pRegular_ttf, 24)
@@ -106,7 +106,6 @@ func (g *Game) setupSoloMatch(botCount int) []*ui.UIBotHand {
 			botHand = ui.NewUIBotHand(320, 170, 80, 120, defaultFont)
 		}
 
-		fmt.Println("Bot hand:", botHand)
 		botHands = append(botHands, botHand)
 		g.UIManager.AddElement(botHand)
 	}
@@ -260,15 +259,34 @@ func (g *Game) PlayCard(playerID string, cardIdx int) error {
 	}
 
 	player := g.GetPlayer(playerID)
-	hasDish := g.CardManager.PlayCard(player, cardIdx)
+	err := g.CardManager.PlayCard(player, cardIdx)
+	if err != nil {
+		fmt.Println("Error playing card:", err)
+		return err
+	}
 
 	g.TurnManager.MarkAllUnpassed()
 
-	if player != nil && len(player.Hand) == 0 {
-		g.TurnManager.MarkFinished(playerID)
+	hasDish := false
+	for g.CardManager.TryMakeDish() {
+		hasDish = true
+		for _, p := range g.Players {
+			if len(p.Hand) == 0 {
+				g.TurnManager.MarkHandEmpty(p.ID)
+				if !g.CardManager.TableStack.HasPlayerCards(p.ID) {
+					g.TurnManager.MarkFinished(p.ID)
+				}
+			}
+		}
 	}
 
-	if !hasDish {
+	for _, p := range g.Players {
+		if len(p.Hand) == 0 {
+			g.TurnManager.MarkHandEmpty(p.ID)
+		}
+	}
+
+	if !hasDish || len(player.Hand) == 0 {
 		g.TurnManager.Next()
 	}
 

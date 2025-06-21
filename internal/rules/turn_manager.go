@@ -5,10 +5,11 @@ import (
 )
 
 type PlayerTurn struct {
-	ID       string
-	IsBot    bool
-	Passed   bool
-	Finished bool
+	ID        string
+	IsBot     bool
+	Passed    bool
+	Finished  bool
+	HandEmpty bool
 }
 
 type TurnManager struct {
@@ -45,6 +46,15 @@ func (tm *TurnManager) Current() *PlayerTurn {
 	return tm.players[tm.index%len(tm.players)]
 }
 
+func (tm *TurnManager) MarkHandEmpty(playerID string) {
+	for _, p := range tm.players {
+		if p.ID == playerID {
+			p.HandEmpty = true
+			break
+		}
+	}
+}
+
 func (tm *TurnManager) MarkFinished(playerID string) {
 	for _, p := range tm.players {
 		if p.ID == playerID && !p.Finished {
@@ -59,12 +69,12 @@ func (tm *TurnManager) FinishedOrder() []string {
 	return tm.order
 }
 
-// Next moves to the next player in turn (skipping finished players).
+// Next moves to the next player in turn
 func (tm *TurnManager) Next() {
 	for i := 1; i <= len(tm.players); i++ {
 		idx := (tm.index + i) % len(tm.players)
 		p := tm.players[idx]
-		if p.Finished || p.Passed {
+		if p.HandEmpty || p.Passed {
 			continue
 		}
 		tm.index = idx
@@ -89,6 +99,16 @@ func (tm *TurnManager) MarkAllUnpassed() {
 	for _, p := range tm.players {
 		p.Passed = false
 	}
+}
+
+func (tm *TurnManager) CountUnfinished() int {
+	count := 0
+	for _, p := range tm.players {
+		if !p.Finished {
+			count++
+		}
+	}
+	return count
 }
 
 func (tm *TurnManager) GetPlayerByID(id string) *PlayerTurn {
