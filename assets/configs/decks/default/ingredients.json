@@ -6,8 +6,7 @@
 			"rarity": "common",
 			"type": "unknown",
 			"effects": [],
-			"icon": "i_banhpho.png",
-			"copies": 4
+			"icon": "i_banhpho.png"
 		},
 		{
 			"id": "I_NUOCDUNG",
@@ -15,8 +14,7 @@
 			"rarity": "common",
 			"type": "unknown",
 			"effects": [],
-			"icon": "i_nuocdung.png",
-			"copies": 2
+			"icon": "i_nuocdung.png"
 		},
 		{
 			"id": "I_THITBO",
@@ -24,8 +22,7 @@
 			"rarity": "common",
 			"type": "unknown",
 			"effects": [],
-			"icon": "i_thitbo.png",
-			"copies": 2
+			"icon": "i_thitbo.png"
 		},
 		{
 			"id": "I_BUN",
@@ -33,8 +30,7 @@
 			"rarity": "common",
 			"type": "unknown",
 			"effects": [],
-			"icon": "i_bun.png",
-			"copies": 2
+			"icon": "i_bun.png"
 		},
 		{
 			"id": "I_BANHTRANG",
@@ -42,8 +38,7 @@
 			"rarity": "common",
 			"type": "unknown",
 			"effects": [],
-			"icon": "i_banhtrang.png",
-			"copies": 1
+			"icon": "i_banhtrang.png"
 		},
 		{
 			"id": "I_TOM",
@@ -51,8 +46,7 @@
 			"rarity": "common",
 			"type": "unknown",
 			"effects": [],
-			"icon": "i_tom.png",
-			"copies": 1
+			"icon": "i_tom.png"
 		},
 		{
 			"id": "I_RAUSONG",
@@ -60,8 +54,7 @@
 			"rarity": "common",
 			"type": "unknown",
 			"effects": [],
-			"icon": "i_rausong.png",
-			"copies": 2
+			"icon": "i_rausong.png"
 		},
 		{
 			"id": "I_BANHMI",
@@ -69,8 +62,7 @@
 			"rarity": "common",
 			"type": "unknown",
 			"effects": [],
-			"icon": "i_banhmi.png",
-			"copies": 1
+			"icon": "i_banhmi.png"
 		},
 		{
 			"id": "I_THITHEO",
@@ -78,8 +70,7 @@
 			"rarity": "common",
 			"type": "unknown",
 			"effects": [],
-			"icon": "i_thitheo.png",
-			"copies": 1
+			"icon": "i_thitheo.png"
 		}
 	]
 }

@@ -59,33 +59,31 @@ func (m *Manager) LoadDeck(theme string) error {
 		return err
 	}
 
+	mapIng := make(map[string]IngredientConfig)
 	for _, ing := range ingFile.Ingredients {
-		c := ing.Copies
-		if c <= 0 {
-			c = 1
-		}
-		for i := 0; i < c; i++ {
-			card := &entity.Card{
-				Entity: entity.Entity{
-					ID:   ing.ID,
-					Name: ing.Name,
-				},
-				Type: entity.CardIngredient,
-			}
-			m.Deck = append(m.Deck, card)
-		}
+		mapIng[ing.ID] = ing
 	}
 
 	for _, r := range rcpFile.Recipes {
 		card := &entity.Card{
-			Entity: entity.Entity{
-				ID:   r.ID,
-				Name: r.Name,
-			},
+			Entity:              *entity.NewEntity(entity.TypeCard, r.Name, 0, 0),
 			Type:                entity.CardRecipe,
 			RequiredIngredients: r.Requires,
 		}
 		m.Deck = append(m.Deck, card)
+
+		for _, ingID := range r.Requires {
+			ing, ok := mapIng[ingID]
+			if !ok {
+				return fmt.Errorf("recipe %s requires unknown ingredient %s", r.ID, ingID)
+			}
+
+			m.Deck = append(m.Deck, &entity.Card{
+				Entity:       *entity.NewEntity(entity.TypeCard, ing.Name, 0, 0),
+				Type:         entity.CardIngredient,
+				IngredientID: ingID,
+			})
+		}
 	}
 
 	m.shuffle(m.Deck)
@@ -149,8 +147,8 @@ func (m *Manager) TryMakeDish() bool {
 
 		var usedIngIdx []int
 		for iIdx, card := range m.TableStack.Ingredients {
-			if cnt, ok := need[card.ID]; ok && cnt > 0 {
-				need[card.ID]--
+			if cnt, ok := need[card.IngredientID]; ok && cnt > 0 {
+				need[card.IngredientID]--
 				usedIngIdx = append(usedIngIdx, iIdx)
 			}
 		}

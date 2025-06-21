@@ -109,7 +109,7 @@ func New() (*Game, error) {
 	g.UIManager.AddElement(newGameBtn)
 
 	// Quick test
-	g.setupSoloMatch(2)
+	g.setupSoloMatch(3)
 
 	return g, nil
 }

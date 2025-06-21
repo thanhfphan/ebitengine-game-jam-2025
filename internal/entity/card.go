@@ -10,6 +10,7 @@ const (
 type Card struct {
 	Entity
 	Type                CartType
+	IngredientID        string   // If Type is CartIngredient, this is the ID of the ingredient
 	RequiredIngredients []string // If Type is CartRecipe, this is the list of required ingredients
 }
 
