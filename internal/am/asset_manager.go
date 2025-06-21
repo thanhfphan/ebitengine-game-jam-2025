@@ -47,3 +47,9 @@ func (am *AssetManager) GetCardImage(cardID string) *ebiten.Image {
 	img := ebiten.NewImage(80, 120)
 	return img
 }
+
+func (am *AssetManager) GetCardBackImage() *ebiten.Image {
+	// TODO: Implement actual card back image loading
+	img := ebiten.NewImage(80, 120)
+	return img
+}

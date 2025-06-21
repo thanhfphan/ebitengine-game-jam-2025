@@ -36,38 +36,6 @@ func NewUIHand(x, y, width, height int) *UIHand {
 	}
 }
 
-// func (h *UIHand) SetCards(cards []*entity.Card, cardImages map[string]*ebiten.Image) {
-// 	h.Cards = []*UICard{}
-
-// 	if len(cards) == 0 {
-// 		return
-// 	}
-
-// 	cardWidth := 80
-// 	cardHeight := 120
-
-// 	// Adjust spacing based on number of cards
-// 	availableWidth := h.Width - cardWidth
-// 	if len(cards) > 1 {
-// 		h.Spacing = min(h.Spacing, availableWidth/(len(cards)-1))
-// 	}
-
-// 	for i, card := range cards {
-// 		img := cardImages[card.ID]
-// 		if img == nil {
-// 			fmt.Println("Card image not found for ID:", card.ID)
-// 			// TODO: Use a default/placeholder image if specific card image not found
-// 			continue
-// 		}
-
-// 		uiCard := NewUICard(card.ID, img, cardWidth, cardHeight)
-// 		uiCard.X = h.X + i*(cardWidth+h.Spacing)
-// 		uiCard.Y = h.Y
-
-// 		h.Cards = append(h.Cards, uiCard)
-// 	}
-// }
-
 func (h *UIHand) Update() {
 	if !h.visible {
 		return
@@ -87,7 +55,6 @@ func (h *UIHand) Draw(screen *ebiten.Image) {
 		return
 	}
 
-	// Draw cards from right to left to ensure proper overlap
 	for i := len(h.Cards) - 1; i >= 0; i-- {
 		h.Cards[i].Draw(screen)
 	}

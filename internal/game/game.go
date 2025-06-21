@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -24,6 +25,7 @@ type Game struct {
 	Players     []*entity.Player
 	Player      *entity.Player
 	PlayerHand  *ui.UIHand
+	BotHands    []*ui.UIBotHand
 	DebugMode   bool
 
 	AssetManager *am.AssetManager
@@ -49,6 +51,7 @@ func New() (*Game, error) {
 		State:        GameStatePlaying,
 		CurrentTurn:  0,
 		Players:      []*entity.Player{},
+		BotHands:     []*ui.UIBotHand{},
 		AssetManager: assetManager,
 		Renderer:     renderer,
 		World:        world,
@@ -119,16 +122,38 @@ func (g *Game) setupSoloMatch(botCount int) {
 	g.TurnManager.Reset()
 	g.Players = []*entity.Player{}
 	g.Player = nil
+	for _, hand := range g.BotHands {
+		g.UIManager.RemoveElement(hand)
+	}
+	g.BotHands = []*ui.UIBotHand{}
 
 	g.Player = entity.NewPlayer("P0", entity.TypePlayer, 0, 0)
 	g.Players = append(g.Players, g.Player)
 	g.TurnManager.AddPlayer(g.Player.ID, false)
+
+	defaultFont := g.AssetManager.GetFont("default")
 
 	for i := 1; i <= botCount; i++ {
 		bot := entity.NewPlayer(fmt.Sprintf("B%d", i), entity.TypeBot, 0, 0)
 		g.Players = append(g.Players, bot)
 		g.TurnManager.AddPlayer(bot.ID, true)
 		g.AIManager.RegisterBot(bot.ID, ai.NewEasyBot())
+
+		var botHand *ui.UIBotHand
+		switch i {
+		case 1: // Left side
+			botHand = ui.NewUIBotHand(150, 360, 80, 120, defaultFont)
+		case 2: // Top
+			botHand = ui.NewUIBotHand(320, 170, 80, 120, defaultFont)
+		case 3: // Right side
+			botHand = ui.NewUIBotHand(930, 360, 80, 120, defaultFont)
+		default:
+			botHand = ui.NewUIBotHand(320, 170, 80, 120, defaultFont)
+		}
+
+		botHand.SetVisible(true)
+		g.BotHands = append(g.BotHands, botHand)
+		g.UIManager.AddElement(botHand)
 	}
 
 	g.CardManager.DealHands(g.Players)
@@ -180,6 +205,7 @@ func (g *Game) UpdatePlayerHand() {
 		return
 	}
 
+	// Update player's hand
 	cardImages := make(map[string]*ebiten.Image)
 	for _, card := range g.Player.Hand {
 		cardImg := g.AssetManager.GetCardImage(card.ID)
@@ -190,6 +216,22 @@ func (g *Game) UpdatePlayerHand() {
 	}
 
 	g.PlayerHand.UpdateCards(g.Player.Hand, cardImages)
+
+	cardBackImage := g.AssetManager.GetCardBackImage()
+	if cardBackImage == nil {
+		cardBackImage = ebiten.NewImage(80, 120)
+		cardBackImage.Fill(color.RGBA{100, 100, 100, 255}) // Gray color for card back
+	}
+
+	for i, botHand := range g.BotHands {
+		if i+1 >= len(g.Players) {
+			continue
+		}
+
+		// Index 0 is the player, so we start from index 1
+		bot := g.Players[i+1]
+		botHand.UpdateCards(bot.Hand, cardBackImage)
+	}
 }
 
 func (g *Game) UpdateTurn() {
