@@ -13,15 +13,16 @@ type UITable struct {
 	X, Y   int // Center point
 	Radius int
 
-	Visible bool
-	ZIndex  int
-
 	BorderColor     color.RGBA
 	BackgroundColor color.RGBA
 
 	IsHovered bool
 	IsPressed bool
 	OnClick   func()
+
+	visible bool
+	zindex  int
+	tags    Tag
 }
 
 func NewUITable(x, y, r int) *UITable {
@@ -29,14 +30,14 @@ func NewUITable(x, y, r int) *UITable {
 		X:               x,
 		Y:               y,
 		Radius:          r,
-		Visible:         true,
+		visible:         true,
 		BackgroundColor: color.RGBA{R: 0x33, G: 0x33, B: 0x33, A: 0xff}, // Gray20
 		BorderColor:     color.RGBA{R: 0xff, G: 0xff, B: 0xff, A: 0xff}, // White
 	}
 }
 
 func (u *UITable) Update() {
-	if !u.Visible {
+	if !u.visible {
 		return
 	}
 	cx, cy := ebiten.CursorPosition()
@@ -45,7 +46,7 @@ func (u *UITable) Update() {
 }
 
 func (u *UITable) Draw(screen *ebiten.Image) {
-	if !u.Visible {
+	if !u.visible {
 		return
 	}
 	cx := float32(u.X)
@@ -59,7 +60,7 @@ func (u *UITable) Draw(screen *ebiten.Image) {
 }
 
 func (u *UITable) Contains(x, y int) bool {
-	if !u.Visible {
+	if !u.visible {
 		return false
 	}
 	dx := float64(x - u.X)
@@ -81,12 +82,10 @@ func (u *UITable) HandleMouseUp(x, y int) bool {
 	return false
 }
 
-func (u *UITable) GetZIndex() int { return u.ZIndex }
-
-func (u *UITable) IsVisible() bool { return u.Visible }
-
-func (u *UITable) SetVisible(v bool) { u.Visible = v }
-
-func (u *UITable) SetZIndex(z int) { u.ZIndex = z }
-
-func (b *UITable) IsStatic() bool { return true }
+func (u *UITable) GetZIndex() int    { return u.zindex }
+func (u *UITable) IsVisible() bool   { return u.visible }
+func (u *UITable) SetVisible(v bool) { u.visible = v }
+func (u *UITable) SetZIndex(z int)   { u.zindex = z }
+func (b *UITable) IsStatic() bool    { return true }
+func (b *UITable) GetTags() Tag      { return b.tags }
+func (b *UITable) SetTags(t Tag)     { b.tags = t }

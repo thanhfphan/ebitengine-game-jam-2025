@@ -17,6 +17,7 @@ type UIButton struct {
 	Text            string
 	Visible         bool
 	ZIndex          int
+	Tags            Tag
 	OnClick         func()
 	IsHovered       bool
 	IsPressed       bool
@@ -36,6 +37,7 @@ func NewUIButton(x, y, width, height int, text string, font font.Face) *UIButton
 		Text:            text,
 		Visible:         true,
 		ZIndex:          0,
+		Tags:            TagNone,
 		BackgroundColor: color.RGBA{0x60, 0x60, 0x60, 0xff},
 		HoverColor:      color.RGBA{0x80, 0x80, 0x80, 0xff},
 		PressedColor:    color.RGBA{0x40, 0x40, 0x40, 0xff},
@@ -112,3 +114,7 @@ func (b *UIButton) GetZIndex() int { return b.ZIndex }
 func (b *UIButton) SetZIndex(zIndex int) { b.ZIndex = zIndex }
 
 func (b *UIButton) IsStatic() bool { return false }
+
+// Add tag methods
+func (b *UIButton) GetTags() Tag  { return b.Tags }
+func (b *UIButton) SetTags(t Tag) { b.Tags = t }

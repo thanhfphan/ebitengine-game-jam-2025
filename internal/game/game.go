@@ -23,12 +23,10 @@ var (
 )
 
 type Game struct {
-	State      GameState
-	Players    []*entity.Player
-	Player     *entity.Player
-	PlayerHand *ui.UIHand
-	BotHands   []*ui.UIBotHand
-	DebugMode  bool
+	State     GameState
+	Players   []*entity.Player
+	Player    *entity.Player
+	DebugMode bool
 
 	AssetManager *am.AssetManager
 	Renderer     *renderer.Renderer
@@ -37,6 +35,8 @@ type Game struct {
 	AIManager    *ai.Manager
 	CardManager  *card.Manager
 	TurnManager  *rules.TurnManager
+
+	currentScene Scene
 }
 
 func New() (*Game, error) {
@@ -51,7 +51,6 @@ func New() (*Game, error) {
 	g := &Game{
 		State:        GameStateMainMenu,
 		Players:      []*entity.Player{},
-		BotHands:     []*ui.UIBotHand{},
 		AssetManager: assetManager,
 		Renderer:     renderer,
 		World:        world,
@@ -69,85 +68,19 @@ func New() (*Game, error) {
 	}
 
 	g.AssetManager.LoadFont("default", fonts.MPlus1pRegular_ttf, 24)
-	defaultFont := g.AssetManager.GetFont("default")
 
-	// Setup table UI
-	table := ui.NewUITable(640, 360, 290)
-	// table.SetVisible(false)
-	g.UIManager.AddElement(table)
-
-	// Setup player hand UI
-	g.PlayerHand = ui.NewUIHand(320, 550, 640, 150)
-	g.PlayerHand.SetVisible(true)
-	g.PlayerHand.SetOnPlayCard(func(cardIndex int) {
-		if g.Player != nil {
-			g.PlayCard(g.Player.ID, cardIndex)
-		}
-	})
-	g.UIManager.AddElement(g.PlayerHand)
-
-	// Setup buttons
-	passBtn := ui.NewUIButton(860, 550, 100, 40, "Pass", defaultFont)
-	passBtn.SetVisible(true)
-	passBtn.OnClick = func() {
-		if g.Player != nil {
-			g.Pass(g.Player.ID)
-		}
-	}
-	g.UIManager.AddElement(passBtn)
-
-	playBtn := ui.NewUIButton(860, 600, 100, 40, "Play", defaultFont)
-	playBtn.SetVisible(true)
-	playBtn.OnClick = func() {
-		g.PlayerHand.PlaySelected()
-	}
-	g.UIManager.AddElement(playBtn)
-
-	menuTitle := ui.NewUIButton(640, 200, 300, 60, "Food Cards", defaultFont)
-	menuTitle.SetVisible(true)
-	menuTitle.BackgroundColor = color.RGBA{0, 0, 0, 0}
-	menuTitle.TextColor = color.RGBA{255, 255, 0, 255} // Yellow text
-	g.UIManager.AddElement(menuTitle)
-
-	newGameBtn := ui.NewUIButton(640, 300, 200, 50, "New Game", defaultFont)
-	newGameBtn.SetVisible(true)
-	newGameBtn.OnClick = func() {
-		g.setupSoloMatch(3)
-		g.State = GameStatePlaying
-		g.updateElementsVisibility()
-	}
-	g.UIManager.AddElement(newGameBtn)
-
-	settingsBtn := ui.NewUIButton(640, 370, 200, 50, "Settings", defaultFont)
-	settingsBtn.SetVisible(true)
-	settingsBtn.OnClick = func() {
-		g.State = GameStateSettings
-		g.updateElementsVisibility()
-	}
-	g.UIManager.AddElement(settingsBtn)
-
-	quitBtn := ui.NewUIButton(640, 440, 200, 50, "Quit", defaultFont)
-	quitBtn.SetVisible(true)
-	quitBtn.OnClick = func() {
-		// Signal to close the game
-		g.State = GameStateQuit
-	}
-	g.UIManager.AddElement(quitBtn)
-
-	g.updateElementsVisibility()
+	// Set initial scene to main menu
+	g.SetScene(NewMainMenuScene())
 
 	return g, nil
 }
 
-func (g *Game) setupSoloMatch(botCount int) {
+func (g *Game) setupSoloMatch(botCount int) []*ui.UIBotHand {
 	g.CardManager.LoadDeck("default")
 	g.TurnManager.Reset()
 	g.Players = []*entity.Player{}
 	g.Player = nil
-	for _, hand := range g.BotHands {
-		g.UIManager.RemoveElement(hand)
-	}
-	g.BotHands = []*ui.UIBotHand{}
+	botHands := []*ui.UIBotHand{}
 
 	g.Player = entity.NewPlayer("P0", entity.TypePlayer, 0, 0)
 	g.Players = append(g.Players, g.Player)
@@ -173,31 +106,39 @@ func (g *Game) setupSoloMatch(botCount int) {
 			botHand = ui.NewUIBotHand(320, 170, 80, 120, defaultFont)
 		}
 
-		botHand.SetVisible(true)
-		g.BotHands = append(g.BotHands, botHand)
+		fmt.Println("Bot hand:", botHand)
+		botHands = append(botHands, botHand)
 		g.UIManager.AddElement(botHand)
 	}
 
 	g.CardManager.DealHands(g.Players)
+	return botHands
+}
+
+func (g *Game) SetScene(scene Scene) {
+	if g.currentScene != nil {
+		g.currentScene.Exit(g)
+	}
+	g.currentScene = scene
+	if g.currentScene != nil {
+		g.currentScene.Enter(g)
+	}
 }
 
 // Update implements ebiten.Game.
 func (g *Game) Update() error {
 	g.HandleInput()
 
-	switch g.State {
-	case GameStateMainMenu:
-		g.UpdateMainMenu()
-	case GameStatePlaying:
-		g.UpdatePlaying()
-	case GameStateSettings:
-		g.UpdateSettings()
-	case GameStateQuit:
-		return ebiten.Termination
+	if g.currentScene != nil {
+		g.currentScene.Update(g)
 	}
 
 	g.UIManager.Update()
 	g.Renderer.Update()
+
+	if g.State == GameStateQuit {
+		return ebiten.Termination
+	}
 
 	return nil
 }
@@ -206,15 +147,11 @@ func (g *Game) Update() error {
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(g.Renderer.BackgroundColor())
 
-	switch g.State {
-	case GameStateMainMenu:
-		g.DrawMainMenu(screen)
-	case GameStatePlaying:
-		g.DrawPlaying(screen)
-	case GameStateSettings:
-		g.DrawSettings(screen)
+	if g.currentScene != nil {
+		g.currentScene.Draw(screen, g)
 	}
 
+	g.UIManager.Draw(screen)
 }
 
 // Layout implements ebiten.Game.
@@ -222,16 +159,24 @@ func (g *Game) Layout(outsideWidth int, outsideHeight int) (int, int) {
 	return 1280, 720
 }
 
-func (g *Game) UpdateMainMenu() {
-	g.UIManager.Update()
+func (g *Game) HandleInput() {
+	if inpututil.IsKeyJustPressed(ebiten.KeyK) {
+		g.DebugMode = !g.DebugMode
+	}
+
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+		mx, my := ebiten.CursorPosition()
+		g.UIManager.HandleMouseDown(mx, my)
+	}
+
+	if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) {
+		mx, my := ebiten.CursorPosition()
+		g.UIManager.HandleMouseUp(mx, my)
+	}
 }
 
-func (g *Game) UpdateSettings() {
-	// TODO: implement
-}
-
-func (g *Game) UpdatePlayerHand() {
-	if g.Player == nil || g.PlayerHand == nil {
+func (g *Game) UpdateHands(playerHand *ui.UIHand, botHands []*ui.UIBotHand) {
+	if g.Player == nil {
 		return
 	}
 
@@ -244,16 +189,15 @@ func (g *Game) UpdatePlayerHand() {
 		}
 		cardImages[card.ID] = cardImg
 	}
+	playerHand.UpdateCards(g.Player.Hand, cardImages)
 
-	g.PlayerHand.UpdateCards(g.Player.Hand, cardImages)
-
+	// Update bot hands
 	cardBackImage := g.AssetManager.GetCardBackImage()
 	if cardBackImage == nil {
 		cardBackImage = ebiten.NewImage(80, 120)
 		cardBackImage.Fill(color.RGBA{100, 100, 100, 255}) // Gray color for card back
 	}
-
-	for i, botHand := range g.BotHands {
+	for i, botHand := range botHands {
 		if i+1 >= len(g.Players) {
 			continue
 		}
@@ -271,71 +215,6 @@ func (g *Game) UpdateTurn() {
 	}
 	if current.IsBot {
 		g.AIManager.OnTurn(current.ID, g)
-	}
-}
-
-func (g *Game) UpdatePlaying() {
-	// TODO: improve this one
-	if winnerOrder := g.TurnManager.FinishedOrder(); len(winnerOrder) > 0 {
-		fmt.Println("Game finished. Winner order:", winnerOrder)
-		g.State = GameStateMainMenu
-		g.updateElementsVisibility()
-		return
-	}
-
-	g.UpdateTurn()
-	// Update player's hand UI
-	g.UpdatePlayerHand()
-}
-
-func (g *Game) DrawMainMenu(screen *ebiten.Image) {
-	g.UIManager.Draw(screen)
-}
-
-func (g *Game) DrawPlaying(screen *ebiten.Image) {
-	g.Renderer.DrawWorld(screen, g.World)
-	//  g.RenderTableAndHands(screen, g.CardManager)
-	g.UIManager.Draw(screen)
-
-	if g.DebugMode {
-		mx, my := ebiten.CursorPosition()
-		g.Renderer.DrawDebug(screen, fmt.Sprintf("Cursor: %d, %d", mx, my))
-	}
-}
-
-func (g *Game) DrawSettings(screen *ebiten.Image) {
-	g.Renderer.DrawDebug(screen, "Settings Menu - Press ESC to return to main menu")
-	g.UIManager.Draw(screen)
-}
-
-func (g *Game) HandleInput() {
-	if inpututil.IsKeyJustPressed(ebiten.KeyK) {
-		g.DebugMode = !g.DebugMode
-	}
-
-	// ESC key to return to main menu from settings
-	if g.State == GameStateSettings && inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
-		g.State = GameStateMainMenu
-		g.updateElementsVisibility()
-	}
-
-	if g.State == GameStatePlaying {
-		current := g.TurnManager.Current()
-		if current != nil && !current.IsBot && inpututil.IsKeyJustPressed(ebiten.KeySpace) {
-			if err := g.PlayCard(current.ID, 0); err != nil {
-				fmt.Println("Error playing card:", err)
-			}
-		}
-	}
-
-	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-		mx, my := ebiten.CursorPosition()
-		g.UIManager.HandleMouseDown(mx, my)
-	}
-
-	if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) {
-		mx, my := ebiten.CursorPosition()
-		g.UIManager.HandleMouseUp(mx, my)
 	}
 }
 
@@ -403,25 +282,4 @@ func (g *Game) GetPlayer(id string) *entity.Player {
 		}
 	}
 	return nil
-}
-
-func (g *Game) updateElementsVisibility() {
-	// Hide/show elements based on current game state
-	for _, element := range g.UIManager.Elements {
-		switch btn := element.(type) {
-		case *ui.UIButton:
-			if btn.Text == "New Game" || btn.Text == "Settings" || btn.Text == "Quit" || btn.Text == "Food Cards" {
-				btn.SetVisible(g.State == GameStateMainMenu)
-			}
-			if btn.Text == "Pass" || btn.Text == "Play" {
-				btn.SetVisible(g.State == GameStatePlaying)
-			}
-		case *ui.UIHand:
-			btn.SetVisible(g.State == GameStatePlaying)
-		case *ui.UIBotHand:
-			btn.SetVisible(g.State == GameStatePlaying)
-		case *ui.UITable:
-			btn.SetVisible(g.State == GameStatePlaying)
-		}
-	}
 }

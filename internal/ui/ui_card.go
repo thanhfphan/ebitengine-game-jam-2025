@@ -10,19 +10,19 @@ import (
 var _ Element = (*UICard)(nil)
 
 type UICard struct {
+	ID            string // TODO: might want remove this one?
 	X, Y          int
 	Width, Height int
-
-	ID    string
-	Image *ebiten.Image
-
-	visible       bool
-	zIndex        int
-	hovering      bool
-	selected      bool
+	Image         *ebiten.Image
 	BorderColor   color.RGBA
 	HoverColor    color.RGBA
 	SelectedColor color.RGBA
+
+	visible  bool
+	zIndex   int
+	hovering bool
+	selected bool
+	tags     Tag
 }
 
 func NewUICard(id string, img *ebiten.Image, w, h int) *UICard {
@@ -98,3 +98,5 @@ func (c *UICard) SetVisible(v bool) { c.visible = v }
 func (c *UICard) GetZIndex() int    { return c.zIndex }
 func (c *UICard) SetZIndex(z int)   { c.zIndex = z }
 func (c *UICard) IsStatic() bool    { return false }
+func (c *UICard) GetTags() Tag      { return c.tags }
+func (c *UICard) SetTags(t Tag)     { c.tags = t }

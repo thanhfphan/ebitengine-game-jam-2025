@@ -8,8 +8,10 @@ type UIImage struct {
 	X, Y          int
 	Width, Height int
 	Image         *ebiten.Image
-	Visible       bool
-	ZIndex        int
+
+	visible bool
+	zindex  int
+	tags    Tag
 }
 
 func NewUIImage(x, y int, image *ebiten.Image) *UIImage {
@@ -20,8 +22,8 @@ func NewUIImage(x, y int, image *ebiten.Image) *UIImage {
 		Width:   width,
 		Height:  height,
 		Image:   image,
-		Visible: true,
-		ZIndex:  0,
+		visible: true,
+		zindex:  0,
 	}
 }
 
@@ -31,11 +33,6 @@ func (u *UIImage) Contains(x int, y int) bool {
 
 // Draw implements Element.
 func (u *UIImage) Draw(*ebiten.Image) {
-}
-
-// GetZIndex implements Element.
-func (u *UIImage) GetZIndex() int {
-	return u.ZIndex
 }
 
 // HandleMouseDown implements Element.
@@ -48,26 +45,14 @@ func (u *UIImage) HandleMouseUp(x int, y int) bool {
 	return false
 }
 
-// IsStatic implements Element.
-func (u *UIImage) IsStatic() bool {
-	return true
-}
-
-// IsVisible implements Element.
-func (u *UIImage) IsVisible() bool {
-	return u.Visible
-}
-
-// SetVisible implements Element.
-func (u *UIImage) SetVisible(v bool) {
-	u.Visible = v
-}
-
-// SetZIndex implements Element.
-func (u *UIImage) SetZIndex(idx int) {
-	u.ZIndex = idx
-}
-
 // Update implements Element.
 func (u *UIImage) Update() {
 }
+
+func (u *UIImage) IsStatic() bool    { return true }
+func (u *UIImage) GetZIndex() int    { return u.zindex }
+func (u *UIImage) IsVisible() bool   { return u.visible }
+func (u *UIImage) SetVisible(v bool) { u.visible = v }
+func (u *UIImage) SetZIndex(idx int) { u.zindex = idx }
+func (u *UIImage) GetTags() Tag      { return u.tags }
+func (u *UIImage) SetTags(t Tag)     { u.tags = t }

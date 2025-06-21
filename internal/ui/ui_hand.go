@@ -20,6 +20,7 @@ type UIHand struct {
 	zIndex       int
 	selectedCard *UICard
 	onPlayCard   func(cardIndex int)
+	tags         Tag
 }
 
 func NewUIHand(x, y, width, height int) *UIHand {
@@ -92,7 +93,7 @@ func (h *UIHand) HandleMouseDown(x, y int) bool {
 }
 
 func (h *UIHand) HandleMouseUp(x, y int) bool {
-	return h.visible
+	return false // No action on mouse up for hand
 }
 
 func (h *UIHand) Contains(x, y int) bool {
@@ -142,22 +143,6 @@ func (h *UIHand) PlaySelected() bool {
 	return false
 }
 
-func (h *UIHand) IsVisible() bool {
-	return h.visible
-}
-
-func (h *UIHand) SetVisible(v bool) {
-	h.visible = v
-}
-
-func (h *UIHand) GetZIndex() int {
-	return h.zIndex
-}
-
-func (h *UIHand) SetZIndex(z int) {
-	h.zIndex = z
-}
-
 func (h *UIHand) UpdateCards(cards []*entity.Card, cardImages map[string]*ebiten.Image) {
 	if len(cards) == 0 {
 		h.Cards = []*UICard{}
@@ -194,6 +179,7 @@ func (h *UIHand) UpdateCards(cards []*entity.Card, cardImages map[string]*ebiten
 				continue
 			}
 			uiCard = NewUICard(card.ID, img, cardWidth, cardHeight)
+			uiCard.SetTags(h.tags)
 		}
 
 		uiCard.X = h.X + i*(cardWidth+h.Spacing)
@@ -221,6 +207,10 @@ func (h *UIHand) UpdateCards(cards []*entity.Card, cardImages map[string]*ebiten
 	h.Cards = newCards
 }
 
-func (h *UIHand) IsStatic() bool {
-	return false
-}
+func (h *UIHand) IsVisible() bool   { return h.visible }
+func (h *UIHand) SetVisible(v bool) { h.visible = v }
+func (h *UIHand) GetZIndex() int    { return h.zIndex }
+func (h *UIHand) SetZIndex(z int)   { h.zIndex = z }
+func (h *UIHand) IsStatic() bool    { return false }
+func (h *UIHand) GetTags() Tag      { return h.tags }
+func (h *UIHand) SetTags(t Tag)     { h.tags = t }

@@ -7,22 +7,26 @@ import (
 )
 
 type Manager struct {
-	Elements      []Element
-	TopZIndex     int
-	ActiveElement Element
+	Elements       []Element
+	TopZIndex      int
+	ActiveElement  Element
+	VisibilityMask Tag
 }
 
 func NewManager() *Manager {
 	return &Manager{
-		Elements:      make([]Element, 0),
-		TopZIndex:     0,
-		ActiveElement: nil,
+		Elements:       make([]Element, 0),
+		TopZIndex:      0,
+		ActiveElement:  nil,
+		VisibilityMask: TagNone,
 	}
 }
 
 func (m *Manager) Update() {
 	for _, e := range m.Elements {
-		e.Update()
+		if e.IsVisible() && (e.GetTags()&m.VisibilityMask) != 0 {
+			e.Update()
+		}
 	}
 }
 
@@ -32,7 +36,7 @@ func (m *Manager) Draw(screen *ebiten.Image) {
 	})
 
 	for _, e := range m.Elements {
-		if e.IsVisible() {
+		if e.IsVisible() && (e.GetTags()&m.VisibilityMask) != 0 {
 			e.Draw(screen)
 		}
 	}
@@ -86,4 +90,8 @@ func (m *Manager) HandleMouseUp(x, y int) bool {
 func (m *Manager) BringToFront(element Element) {
 	m.TopZIndex++
 	element.SetZIndex(m.TopZIndex)
+}
+
+func (m *Manager) SetMask(mask Tag) {
+	m.VisibilityMask = mask
 }
