@@ -82,10 +82,11 @@ func (u *UITable) HandleMouseUp(x, y int) bool {
 	return false
 }
 
-func (u *UITable) GetZIndex() int    { return u.zindex }
-func (u *UITable) IsVisible() bool   { return u.visible }
-func (u *UITable) SetVisible(v bool) { u.visible = v }
-func (u *UITable) SetZIndex(z int)   { u.zindex = z }
-func (b *UITable) IsStatic() bool    { return true }
-func (b *UITable) GetTags() Tag      { return b.tags }
-func (b *UITable) SetTags(t Tag)     { b.tags = t }
+func (u *UITable) GetZIndex() int              { return u.zindex }
+func (u *UITable) IsVisible() bool             { return u.visible }
+func (u *UITable) SetVisible(v bool)           { u.visible = v }
+func (u *UITable) SetZIndex(z int)             { u.zindex = z }
+func (b *UITable) IsStatic() bool              { return true }
+func (b *UITable) GetTags() Tag                { return b.tags }
+func (b *UITable) SetTags(t Tag)               { b.tags = t }
+func (b *UITable) SetDraggable(draggable bool) {}

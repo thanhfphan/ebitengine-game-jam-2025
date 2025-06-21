@@ -49,10 +49,11 @@ func (u *UIImage) HandleMouseUp(x int, y int) bool {
 func (u *UIImage) Update() {
 }
 
-func (u *UIImage) IsStatic() bool    { return true }
-func (u *UIImage) GetZIndex() int    { return u.zindex }
-func (u *UIImage) IsVisible() bool   { return u.visible }
-func (u *UIImage) SetVisible(v bool) { u.visible = v }
-func (u *UIImage) SetZIndex(idx int) { u.zindex = idx }
-func (u *UIImage) GetTags() Tag      { return u.tags }
-func (u *UIImage) SetTags(t Tag)     { u.tags = t }
+func (u *UIImage) IsStatic() bool              { return true }
+func (u *UIImage) GetZIndex() int              { return u.zindex }
+func (u *UIImage) IsVisible() bool             { return u.visible }
+func (u *UIImage) SetVisible(v bool)           { u.visible = v }
+func (u *UIImage) SetZIndex(idx int)           { u.zindex = idx }
+func (u *UIImage) GetTags() Tag                { return u.tags }
+func (u *UIImage) SetTags(t Tag)               { u.tags = t }
+func (u *UIImage) SetDraggable(draggable bool) {}

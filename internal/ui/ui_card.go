@@ -18,11 +18,13 @@ type UICard struct {
 	HoverColor    color.RGBA
 	SelectedColor color.RGBA
 
-	visible  bool
-	zIndex   int
-	hovering bool
-	selected bool
-	tags     Tag
+	draggable  bool
+	isDragging bool
+	visible    bool
+	zIndex     int
+	hovering   bool
+	selected   bool
+	tags       Tag
 }
 
 func NewUICard(id string, img *ebiten.Image, w, h int) *UICard {
@@ -31,6 +33,8 @@ func NewUICard(id string, img *ebiten.Image, w, h int) *UICard {
 		Image:         img,
 		Width:         w,
 		Height:        h,
+		draggable:     false,
+		isDragging:    false,
 		visible:       true,
 		BorderColor:   color.RGBA{R: 0xff, G: 0xff, B: 0xff, A: 0xff},
 		HoverColor:    color.RGBA{R: 0x80, G: 0x80, B: 0x80, A: 0xff},
@@ -93,10 +97,11 @@ func (c *UICard) HandleMouseUp(x, y int) bool {
 	return false
 }
 
-func (c *UICard) IsVisible() bool   { return c.visible }
-func (c *UICard) SetVisible(v bool) { c.visible = v }
-func (c *UICard) GetZIndex() int    { return c.zIndex }
-func (c *UICard) SetZIndex(z int)   { c.zIndex = z }
-func (c *UICard) IsStatic() bool    { return false }
-func (c *UICard) GetTags() Tag      { return c.tags }
-func (c *UICard) SetTags(t Tag)     { c.tags = t }
+func (c *UICard) IsVisible() bool             { return c.visible }
+func (c *UICard) SetVisible(v bool)           { c.visible = v }
+func (c *UICard) GetZIndex() int              { return c.zIndex }
+func (c *UICard) SetZIndex(z int)             { c.zIndex = z }
+func (c *UICard) IsStatic() bool              { return false }
+func (c *UICard) GetTags() Tag                { return c.tags }
+func (c *UICard) SetTags(t Tag)               { c.tags = t }
+func (c *UICard) SetDraggable(draggable bool) { c.draggable = draggable }

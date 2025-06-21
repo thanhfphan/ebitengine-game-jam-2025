@@ -207,10 +207,11 @@ func (h *UIHand) UpdateCards(cards []*entity.Card, cardImages map[string]*ebiten
 	h.Cards = newCards
 }
 
-func (h *UIHand) IsVisible() bool   { return h.visible }
-func (h *UIHand) SetVisible(v bool) { h.visible = v }
-func (h *UIHand) GetZIndex() int    { return h.zIndex }
-func (h *UIHand) SetZIndex(z int)   { h.zIndex = z }
-func (h *UIHand) IsStatic() bool    { return false }
-func (h *UIHand) GetTags() Tag      { return h.tags }
-func (h *UIHand) SetTags(t Tag)     { h.tags = t }
+func (h *UIHand) IsVisible() bool             { return h.visible }
+func (h *UIHand) SetVisible(v bool)           { h.visible = v }
+func (h *UIHand) GetZIndex() int              { return h.zIndex }
+func (h *UIHand) SetZIndex(z int)             { h.zIndex = z }
+func (h *UIHand) IsStatic() bool              { return false }
+func (h *UIHand) GetTags() Tag                { return h.tags }
+func (h *UIHand) SetTags(t Tag)               { h.tags = t }
+func (h *UIHand) SetDraggable(draggable bool) {}

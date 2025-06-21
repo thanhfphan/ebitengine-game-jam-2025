@@ -25,4 +25,5 @@ type Element interface {
 	IsStatic() bool
 	GetTags() Tag
 	SetTags(Tag)
+	SetDraggable(bool)
 }
