@@ -26,7 +26,7 @@ func NewPlayingScene() *PlayingScene {
 func (s *PlayingScene) Enter(g *Game) {
 	g.UIManager = ui.NewManager()
 
-	defaultFont := g.AssetManager.GetFont("default")
+	defaultFont := g.AssetManager.GetFont("nunito", 24)
 
 	centerX, centerY := ScreenW/2, ScreenH/2
 

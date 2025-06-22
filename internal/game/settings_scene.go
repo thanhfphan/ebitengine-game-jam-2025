@@ -18,7 +18,7 @@ func NewSettingsScene() *SettingsScene {
 
 func (s *SettingsScene) Enter(g *Game) {
 	g.UIManager = ui.NewManager()
-	defaultFont := g.AssetManager.GetFont("default")
+	defaultFont := g.AssetManager.GetFont("nunito", 24)
 
 	// Create settings title
 	title := ui.NewUIButton(640, 200, 300, 60, "Settings", defaultFont)

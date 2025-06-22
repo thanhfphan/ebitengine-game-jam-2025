@@ -5,6 +5,6 @@ import (
 )
 
 var (
-	//go:embed mplus-1p-regular.ttf
-	MPlus1pRegular_ttf []byte
+	//go:embed Nunito-Regular.ttf
+	NunitoRegular_ttf []byte
 )

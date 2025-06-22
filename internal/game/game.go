@@ -73,7 +73,9 @@ func New() (*Game, error) {
 		fmt.Println("Card played:", card.Name, "by", player.Name, "(", player.ID, ")")
 	}
 
-	g.AssetManager.LoadFont("default", fonts.MPlus1pRegular_ttf, 24)
+	g.AssetManager.LoadFont("nunito", fonts.NunitoRegular_ttf, 24)
+	g.AssetManager.LoadFont("nunito", fonts.NunitoRegular_ttf, 32)
+	g.AssetManager.LoadFont("nunito", fonts.NunitoRegular_ttf, 48)
 
 	// Set initial scene to main menu
 	g.SetScene(NewMainMenuScene())
@@ -92,7 +94,7 @@ func (g *Game) setupSoloMatch(botCount int) []*ui.UIBotHand {
 	g.Players = append(g.Players, g.Player)
 	g.TurnManager.AddPlayer(g.Player.ID, false)
 
-	defaultFont := g.AssetManager.GetFont("default")
+	defaultFont := g.AssetManager.GetFont("nunito", 24)
 
 	for i := 1; i <= botCount; i++ {
 		bot := entity.NewPlayer(fmt.Sprintf("B%d", i), entity.TypeBot, 0, 0)

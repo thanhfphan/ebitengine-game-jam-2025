@@ -16,9 +16,21 @@ func NewMainMenuScene() *MainMenuScene {
 		elements: []ui.Element{},
 	}
 }
+
 func (s *MainMenuScene) Enter(g *Game) {
 	g.UIManager = ui.NewManager()
-	f := g.AssetManager.GetFont("default")
+	defaultFont := g.AssetManager.GetFont("nunito", 24)
+	titleFont := g.AssetManager.GetFont("nunito", 48)
+
+	var (
+		colButtonBg      = color.RGBA{0xF3, 0xE2, 0xC3, 0xFF} // #F3E2C3 – bẽ sáng (tre, rơm khô)
+		colButtonHover   = color.RGBA{0xFF, 0xE0, 0x7A, 0xFF} // #FFE07A – vàng nắng lúa
+		colButtonPressed = color.RGBA{0xD9, 0xC3, 0x90, 0xFF} // #D9C390 – bẽ đậm
+		colButtonText    = color.RGBA{0x36, 0x55, 0x34, 0xFF} // #365534 – xanh lá sẫm
+
+		colTitle      = color.RGBA{0xFF, 0xE7, 0x4D, 0xFF} // #FFE74D – vàng tươi nổi bật
+		colTitleHover = color.RGBA{0xFF, 0xFF, 0xFF, 0xFF} // White when hover
+	)
 
 	var (
 		phi    = 1.618 // Golden ratio
@@ -31,29 +43,27 @@ func (s *MainMenuScene) Enter(g *Game) {
 	)
 
 	makeBtn := func(label string, y int, onClick func()) *ui.UIButton {
-		b := ui.NewUIButton(cx-btnW/2, y, btnW, btnH, label, f)
-		b.BackgroundColor = color.RGBA{0xF5, 0xDE, 0xB3, 0xFF}
-		b.HoverColor = color.RGBA{0xFF, 0xD7, 0x00, 0xFF}
-		b.PressedColor = color.RGBA{0xAA, 0x88, 0x00, 0xFF}
-		b.TextColor = color.RGBA{0x4B, 0x2E, 0x2B, 0xFF}
+		b := ui.NewUIButton(cx-btnW/2, y, btnW, btnH, label, defaultFont)
+		b.BackgroundColor = colButtonBg
+		b.HoverColor = colButtonHover
+		b.PressedColor = colButtonPressed
+		b.TextColor = colButtonText
 		b.OnClick = onClick
 		b.SetTags(ui.TagMenu)
 		g.UIManager.AddElement(b)
 		return b
 	}
 
-	// Title
-	title := ui.NewUILabel(cx, int(startY), "FOOD CARDS", f)
+	title := ui.NewUILabel(cx, startY, "FOOD CARDS", titleFont)
 	title.AlignCenter()
-	title.TextColor = color.RGBA{255, 213, 0, 255}
-	title.HoverColor = color.RGBA{255, 255, 255, 255}
+	title.TextColor = colTitle
+	title.HoverColor = colTitleHover
 	title.HoverScale = 1.08
 	title.EnableHover = true
 	title.SetTags(ui.TagMenu)
 	g.UIManager.AddElement(title)
 	s.elements = append(s.elements, title)
 
-	// Buttons
 	y := startY + 120
 	s.elements = append(s.elements,
 		makeBtn("New Game", y, func() { g.SetScene(NewPlayingScene()) }),
