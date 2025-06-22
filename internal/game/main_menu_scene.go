@@ -16,47 +16,51 @@ func NewMainMenuScene() *MainMenuScene {
 		elements: []ui.Element{},
 	}
 }
-
 func (s *MainMenuScene) Enter(g *Game) {
 	g.UIManager = ui.NewManager()
-	defaultFont := g.AssetManager.GetFont("default")
+	f := g.AssetManager.GetFont("default")
 
-	// Create menu title
-	menuTitle := ui.NewUIButton(640, 200, 300, 60, "Food Cards", defaultFont)
-	menuTitle.BackgroundColor = color.RGBA{0, 0, 0, 0} // Transparent background
-	menuTitle.TextColor = color.RGBA{255, 255, 0, 255} // Yellow text
-	menuTitle.SetTags(ui.TagMenu)
-	g.UIManager.AddElement(menuTitle)
-	s.elements = append(s.elements, menuTitle)
+	var (
+		phi    = 1.618 // Golden ratio
+		cx     = ScreenW / 2
+		blockH = float64(ScreenH) / phi
+		startY = int(ScreenH/2) - int(blockH/2)
+		btnW   = ScreenW / 3
+		btnH   = 56
+		gapY   = 32
+	)
 
-	// Create New Game button
-	newGameBtn := ui.NewUIButton(640, 300, 200, 50, "New Game", defaultFont)
-	newGameBtn.OnClick = func() {
-		g.SetScene(NewPlayingScene())
+	makeBtn := func(label string, y int, onClick func()) *ui.UIButton {
+		b := ui.NewUIButton(cx-btnW/2, y, btnW, btnH, label, f)
+		b.BackgroundColor = color.RGBA{0xF5, 0xDE, 0xB3, 0xFF}
+		b.HoverColor = color.RGBA{0xFF, 0xD7, 0x00, 0xFF}
+		b.PressedColor = color.RGBA{0xAA, 0x88, 0x00, 0xFF}
+		b.TextColor = color.RGBA{0x4B, 0x2E, 0x2B, 0xFF}
+		b.OnClick = onClick
+		b.SetTags(ui.TagMenu)
+		g.UIManager.AddElement(b)
+		return b
 	}
-	newGameBtn.SetTags(ui.TagMenu)
-	g.UIManager.AddElement(newGameBtn)
-	s.elements = append(s.elements, newGameBtn)
 
-	// Create Settings button
-	settingsBtn := ui.NewUIButton(640, 370, 200, 50, "Settings", defaultFont)
-	settingsBtn.OnClick = func() {
-		g.SetScene(NewSettingsScene())
-	}
-	settingsBtn.SetTags(ui.TagMenu)
-	g.UIManager.AddElement(settingsBtn)
-	s.elements = append(s.elements, settingsBtn)
+	// Title
+	title := ui.NewUILabel(cx, int(startY), "FOOD CARDS", f)
+	title.AlignCenter()
+	title.TextColor = color.RGBA{255, 213, 0, 255}
+	title.HoverColor = color.RGBA{255, 255, 255, 255}
+	title.HoverScale = 1.08
+	title.EnableHover = true
+	title.SetTags(ui.TagMenu)
+	g.UIManager.AddElement(title)
+	s.elements = append(s.elements, title)
 
-	// Create Quit button
-	quitBtn := ui.NewUIButton(640, 440, 200, 50, "Quit", defaultFont)
-	quitBtn.OnClick = func() {
-		g.State = GameStateQuit
-	}
-	quitBtn.SetTags(ui.TagMenu)
-	g.UIManager.AddElement(quitBtn)
-	s.elements = append(s.elements, quitBtn)
+	// Buttons
+	y := startY + 120
+	s.elements = append(s.elements,
+		makeBtn("New Game", y, func() { g.SetScene(NewPlayingScene()) }),
+		makeBtn("Settings", y+btnH+gapY, func() { g.SetScene(NewSettingsScene()) }),
+		makeBtn("Quit", y+2*(btnH+gapY), func() { g.State = GameStateQuit }),
+	)
 
-	// Set UI visibility mask for menu
 	g.UIManager.SetMask(ui.TagMenu)
 }
 

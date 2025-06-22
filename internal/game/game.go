@@ -22,6 +22,12 @@ var (
 	_ ai.GameLike = (*Game)(nil)
 )
 
+var (
+	ScreenW, ScreenH      = 1280, 720
+	TableRadius           = 300
+	CardWidth, CardHeight = 80, 120
+)
+
 type Game struct {
 	State     GameState
 	Players   []*entity.Player

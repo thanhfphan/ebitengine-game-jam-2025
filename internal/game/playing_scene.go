@@ -9,12 +9,6 @@ import (
 	"github.com/thanhfphan/ebitengj2025/internal/ui"
 )
 
-var (
-	ScreenW, ScreenH      = 1280, 720
-	TableRadius           = 300
-	CardWidth, CardHeight = 80, 120
-)
-
 type PlayingScene struct {
 	elements   []ui.Element
 	playerHand *ui.UIHand
