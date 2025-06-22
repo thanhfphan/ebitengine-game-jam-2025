@@ -20,6 +20,7 @@ type Element interface {
 	Contains(x, y int) bool
 	HandleMouseDown(x, y int) bool
 	HandleMouseUp(x, y int) bool
+	SetPosition(x, y int)
 	GetZIndex() int
 	SetZIndex(int)
 	IsStatic() bool

@@ -197,3 +197,7 @@ func (u *UITableCards) IsStatic() bool              { return true }
 func (u *UITableCards) GetTags() Tag                { return u.tags }
 func (u *UITableCards) SetTags(tag Tag)             { u.tags = tag }
 func (u *UITableCards) SetDraggable(draggable bool) {}
+func (u *UITableCards) SetPosition(x, y int) {
+	u.X = x
+	u.Y = y
+}

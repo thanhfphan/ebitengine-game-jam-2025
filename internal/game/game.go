@@ -94,18 +94,7 @@ func (g *Game) setupSoloMatch(botCount int) []*ui.UIBotHand {
 		g.TurnManager.AddPlayer(bot.ID, true)
 		g.AIManager.RegisterBot(bot.ID, ai.NewEasyBot())
 
-		var botHand *ui.UIBotHand
-		switch i {
-		case 1: // Left side
-			botHand = ui.NewUIBotHand(150, 360, 80, 120, defaultFont)
-		case 2: // Top
-			botHand = ui.NewUIBotHand(320, 170, 80, 120, defaultFont)
-		case 3: // Right side
-			botHand = ui.NewUIBotHand(930, 360, 80, 120, defaultFont)
-		default:
-			botHand = ui.NewUIBotHand(320, 170, 80, 120, defaultFont)
-		}
-
+		botHand := ui.NewUIBotHand(0, 0, CardWidth, CardHeight, defaultFont) // Position will be set later
 		botHands = append(botHands, botHand)
 		g.UIManager.AddElement(botHand)
 	}

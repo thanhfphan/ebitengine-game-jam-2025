@@ -135,3 +135,7 @@ func (c *UICard) GetTags() Tag                { return c.tags }
 func (c *UICard) SetTags(t Tag)               { c.tags = t }
 func (c *UICard) SetDraggable(draggable bool) { c.draggable = draggable }
 func (c *UICard) IsDraggable() bool           { return c.draggable }
+func (c *UICard) SetPosition(x, y int) {
+	c.X = x
+	c.Y = y
+}

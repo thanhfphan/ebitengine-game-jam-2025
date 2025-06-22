@@ -215,3 +215,7 @@ func (h *UIHand) IsStatic() bool              { return false }
 func (h *UIHand) GetTags() Tag                { return h.tags }
 func (h *UIHand) SetTags(t Tag)               { h.tags = t }
 func (h *UIHand) SetDraggable(draggable bool) {}
+func (h *UIHand) SetPosition(x, y int) {
+	h.X = x
+	h.Y = y
+}

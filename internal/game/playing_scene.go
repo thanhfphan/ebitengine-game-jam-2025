@@ -2,10 +2,17 @@ package game
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/thanhfphan/ebitengj2025/internal/ui"
+)
+
+var (
+	ScreenW, ScreenH      = 1280, 720
+	TableRadius           = 300
+	CardWidth, CardHeight = 80, 120
 )
 
 type PlayingScene struct {
@@ -27,14 +34,18 @@ func (s *PlayingScene) Enter(g *Game) {
 
 	defaultFont := g.AssetManager.GetFont("default")
 
+	centerX, centerY := ScreenW/2, ScreenH/2
+
 	// Setup table cards UI
-	s.tableCards = ui.NewUITableCards(640, 360, 290)
+	s.tableCards = ui.NewUITableCards(centerX, centerY, TableRadius)
 	s.tableCards.SetTags(ui.TagInGame)
 	g.UIManager.AddElement(s.tableCards)
 	s.elements = append(s.elements, s.tableCards)
 
 	// Setup player hand UI
-	s.playerHand = ui.NewUIHand(370, 600, 640, 150)
+	handWidth := 800
+	handHeight := 160
+	s.playerHand = ui.NewUIHand(centerX-handWidth/2, 600, handWidth, handHeight)
 	s.playerHand.SetTags(ui.TagInGame)
 	s.playerHand.SetOnPlayCard(func(cardIndex int) {
 		if g.Player != nil {
@@ -45,7 +56,8 @@ func (s *PlayingScene) Enter(g *Game) {
 	s.elements = append(s.elements, s.playerHand)
 
 	// Setup buttons
-	passBtn := ui.NewUIButton(860, 550, 100, 40, "Pass", defaultFont)
+	btnX := centerX + 300
+	passBtn := ui.NewUIButton(btnX, 600, 100, 40, "Pass", defaultFont)
 	passBtn.SetTags(ui.TagInGame)
 	passBtn.OnClick = func() {
 		if g.Player != nil {
@@ -55,7 +67,7 @@ func (s *PlayingScene) Enter(g *Game) {
 	g.UIManager.AddElement(passBtn)
 	s.elements = append(s.elements, passBtn)
 
-	playBtn := ui.NewUIButton(860, 600, 100, 40, "Play", defaultFont)
+	playBtn := ui.NewUIButton(btnX, 650, 100, 40, "Play", defaultFont)
 	playBtn.SetTags(ui.TagInGame)
 	playBtn.OnClick = func() {
 		s.playerHand.PlaySelected()
@@ -74,7 +86,19 @@ func (s *PlayingScene) Enter(g *Game) {
 
 	// Setup game
 	s.botHands = g.setupSoloMatch(3)
-	for _, hand := range s.botHands {
+	numBots := len(s.botHands)
+	reserved := math.Pi / 3
+	if numBots >= 4 {
+		reserved = 2 * math.Pi / 3
+	}
+	arc := 2*math.Pi - reserved // For bots
+	angleGap := arc / float64(numBots+1)
+	startAngle := 3*math.Pi/2 + reserved/2
+	for i, hand := range s.botHands {
+		angle := math.Mod(startAngle+angleGap*float64(i+1), 2*math.Pi)
+		x := int(float64(centerX) + float64(TableRadius)*math.Cos(angle))
+		y := int(float64(centerY) - float64(TableRadius)*math.Sin(angle))
+		hand.SetPosition(x-hand.Width/2, y-hand.Height/2)
 		hand.SetTags(ui.TagInGame)
 	}
 

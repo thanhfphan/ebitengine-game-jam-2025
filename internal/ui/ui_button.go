@@ -113,3 +113,7 @@ func (b *UIButton) IsStatic() bool              { return false }
 func (b *UIButton) GetTags() Tag                { return b.Tags }
 func (b *UIButton) SetTags(t Tag)               { b.Tags = t }
 func (b *UIButton) SetDraggable(draggable bool) {}
+func (b *UIButton) SetPosition(x, y int) {
+	b.X = x
+	b.Y = y
+}
