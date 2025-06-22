@@ -138,7 +138,8 @@ func (m *Manager) TryMakeDish() bool {
 
 		var usedIngIdx []int
 		var usedCardIDs []string
-		for iIdx, card := range m.TableStack.Ingredients {
+		for iIdx := len(m.TableStack.Ingredients) - 1; iIdx >= 0; iIdx-- {
+			card := m.TableStack.Ingredients[iIdx]
 			if cnt, ok := need[card.IngredientID]; ok && cnt > 0 {
 				need[card.IngredientID]--
 				usedIngIdx = append(usedIngIdx, iIdx)
