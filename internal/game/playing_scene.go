@@ -12,6 +12,7 @@ type PlayingScene struct {
 	elements   []ui.Element
 	playerHand *ui.UIHand
 	botHands   []*ui.UIBotHand
+	tableCards *ui.UITableCards
 }
 
 func NewPlayingScene() *PlayingScene {
@@ -25,14 +26,15 @@ func (s *PlayingScene) Enter(g *Game) {
 	g.UIManager = ui.NewManager()
 
 	defaultFont := g.AssetManager.GetFont("default")
-	// Setup table UI
-	table := ui.NewUITable(640, 360, 290)
-	table.SetTags(ui.TagInGame)
-	g.UIManager.AddElement(table)
-	s.elements = append(s.elements, table)
+
+	// Setup table cards UI
+	s.tableCards = ui.NewUITableCards(640, 360, 290)
+	s.tableCards.SetTags(ui.TagInGame)
+	g.UIManager.AddElement(s.tableCards)
+	s.elements = append(s.elements, s.tableCards)
 
 	// Setup player hand UI
-	s.playerHand = ui.NewUIHand(320, 550, 640, 150)
+	s.playerHand = ui.NewUIHand(370, 600, 640, 150)
 	s.playerHand.SetTags(ui.TagInGame)
 	s.playerHand.SetOnPlayCard(func(cardIndex int) {
 		if g.Player != nil {
@@ -86,6 +88,7 @@ func (s *PlayingScene) Exit(g *Game) {
 	s.elements = nil
 	s.playerHand = nil
 	s.botHands = nil
+	s.tableCards = nil
 }
 
 func (s *PlayingScene) Update(g *Game) {
@@ -97,13 +100,41 @@ func (s *PlayingScene) Update(g *Game) {
 	}
 
 	g.UpdateTurn()
-
 	g.UpdateHands(s.playerHand, s.botHands)
+
+	s.UpdateTableCards(g)
 
 	// Check for ESC key to return to main menu
 	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
 		g.SetScene(NewMainMenuScene())
 	}
+}
+
+func (s *PlayingScene) UpdateTableCards(g *Game) {
+	if s.tableCards == nil {
+		return
+	}
+
+	// Tạo map các hình ảnh card
+	cardImages := make(map[string]*ebiten.Image)
+
+	// Lấy hình ảnh cho tất cả card trong TableStack
+	for _, recipe := range g.CardManager.TableStack.Receipes {
+		cardImg := g.AssetManager.GetCardImage(recipe.ID)
+		if cardImg != nil {
+			cardImages[recipe.ID] = cardImg
+		}
+	}
+
+	for _, ingredient := range g.CardManager.TableStack.Ingredients {
+		cardImg := g.AssetManager.GetCardImage(ingredient.ID)
+		if cardImg != nil {
+			cardImages[ingredient.ID] = cardImg
+		}
+	}
+
+	// Cập nhật UI
+	s.tableCards.UpdateFromTableStack(g.CardManager.TableStack, cardImages)
 }
 
 func (s *PlayingScene) Draw(screen *ebiten.Image, g *Game) {

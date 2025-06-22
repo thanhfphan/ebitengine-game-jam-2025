@@ -14,7 +14,7 @@ func main() {
 	}
 
 	ebiten.SetWindowTitle("Food Cards")
-	ebiten.SetWindowSize(1024, 768)
+	ebiten.SetWindowSize(1280, 720)
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 	if err := ebiten.RunGame(game); err != nil {
 		log.Fatalf("Game error: %v", err)

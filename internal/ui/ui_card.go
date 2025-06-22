@@ -18,13 +18,15 @@ type UICard struct {
 	HoverColor    color.RGBA
 	SelectedColor color.RGBA
 
-	draggable  bool
-	isDragging bool
-	visible    bool
-	zIndex     int
-	hovering   bool
-	selected   bool
-	tags       Tag
+	draggable   bool
+	isDragging  bool
+	dragOffsetX int
+	dragOffsetY int
+	visible     bool
+	zIndex      int
+	hovering    bool
+	selected    bool
+	tags        Tag
 }
 
 func NewUICard(id string, img *ebiten.Image, w, h int) *UICard {
@@ -35,6 +37,8 @@ func NewUICard(id string, img *ebiten.Image, w, h int) *UICard {
 		Height:        h,
 		draggable:     false,
 		isDragging:    false,
+		dragOffsetX:   0,
+		dragOffsetY:   0,
 		visible:       true,
 		BorderColor:   color.RGBA{R: 0xff, G: 0xff, B: 0xff, A: 0xff},
 		HoverColor:    color.RGBA{R: 0x80, G: 0x80, B: 0x80, A: 0xff},
@@ -71,8 +75,15 @@ func (c *UICard) Update() {
 	if !c.visible {
 		return
 	}
+
 	mx, my := ebiten.CursorPosition()
 	c.hovering = c.Contains(mx, my)
+
+	if c.isDragging {
+		x, y := ebiten.CursorPosition()
+		c.X = x - c.dragOffsetX
+		c.Y = y - c.dragOffsetY
+	}
 }
 
 func (c *UICard) Contains(x, y int) bool {
@@ -82,18 +93,36 @@ func (c *UICard) Contains(x, y int) bool {
 }
 
 func (c *UICard) HandleMouseDown(x, y int) bool {
-	if c.Contains(x, y) {
-		c.selected = true
-		return true
+	if !c.visible || !c.Contains(x, y) {
+		return false
 	}
-	return false
+
+	c.selected = true
+
+	if c.draggable {
+		c.isDragging = true
+		c.dragOffsetX = x - c.X
+		c.dragOffsetY = y - c.Y
+	}
+
+	return true
 }
 
 func (c *UICard) HandleMouseUp(x, y int) bool {
-	if c.selected {
+	if !c.visible {
+		return false
+	}
+
+	afterMouseUpFnc := func() {
+		c.isDragging = false
 		c.selected = false
+	}
+
+	if c.isDragging || c.selected {
+		afterMouseUpFnc()
 		return true
 	}
+
 	return false
 }
 
@@ -105,3 +134,4 @@ func (c *UICard) IsStatic() bool              { return false }
 func (c *UICard) GetTags() Tag                { return c.tags }
 func (c *UICard) SetTags(t Tag)               { c.tags = t }
 func (c *UICard) SetDraggable(draggable bool) { c.draggable = draggable }
+func (c *UICard) IsDraggable() bool           { return c.draggable }
