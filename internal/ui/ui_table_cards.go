@@ -5,7 +5,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
-	"github.com/thanhfphan/ebitengj2025/internal/entity"
+	"github.com/thanhfphan/ebitengj2025/internal/view"
 )
 
 var _ Element = (*UITableCards)(nil)
@@ -104,10 +104,10 @@ func (u *UITableCards) HandleMouseUp(x, y int) bool {
 	return false
 }
 
-func (u *UITableCards) UpdateFromTableStack(tableStack *entity.TableStack, cardImages map[string]*ebiten.Image) {
+func (u *UITableCards) UpdateFromTableStack(tableStack view.TableStack, cardImages map[string]*ebiten.Image) {
 	u.cleanupCards(tableStack)
 
-	for i, recipe := range tableStack.Receipes {
+	for i, recipe := range tableStack.Recipes {
 		found := false
 		for _, c := range u.Cards {
 			if c.ID == recipe.ID {
@@ -167,11 +167,10 @@ func (u *UITableCards) UpdateFromTableStack(tableStack *entity.TableStack, cardI
 	}
 }
 
-// cleanupCards removes any cards that are no longer in the table stack.
-// If new cards are added, they will be added in the next call to
-func (u *UITableCards) cleanupCards(tableStack *entity.TableStack) {
+// cleanupCards removes any cards that are no longer in the table stack
+func (u *UITableCards) cleanupCards(tableStack view.TableStack) {
 	cardIDs := make(map[string]bool)
-	for _, recipe := range tableStack.Receipes {
+	for _, recipe := range tableStack.Recipes {
 		cardIDs[recipe.ID] = true
 	}
 

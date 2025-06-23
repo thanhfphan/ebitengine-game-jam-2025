@@ -14,6 +14,7 @@ import (
 	"github.com/thanhfphan/ebitengj2025/internal/renderer"
 	"github.com/thanhfphan/ebitengj2025/internal/rules"
 	"github.com/thanhfphan/ebitengj2025/internal/ui"
+	"github.com/thanhfphan/ebitengj2025/internal/view"
 	"github.com/thanhfphan/ebitengj2025/internal/world"
 )
 
@@ -178,14 +179,17 @@ func (g *Game) UpdateHands(playerHand *ui.UIHand, botHands []*ui.UIBotHand) {
 
 	// Update player's hand
 	cardImages := make(map[string]*ebiten.Image)
+	viewCards := make([]view.Card, 0, len(g.Player.Hand))
+
 	for _, card := range g.Player.Hand {
+		viewCards = append(viewCards, view.FromEntityCard(card))
 		cardImg := g.AssetManager.GetCardImage(card.ID)
 		if cardImg == nil {
 			cardImg = ebiten.NewImage(80, 120)
 		}
 		cardImages[card.ID] = cardImg
 	}
-	playerHand.UpdateCards(g.Player.Hand, cardImages)
+	playerHand.UpdateCards(viewCards, cardImages)
 
 	// Update bot hands
 	cardBackImage := g.AssetManager.GetCardBackImage()
@@ -200,7 +204,11 @@ func (g *Game) UpdateHands(playerHand *ui.UIHand, botHands []*ui.UIBotHand) {
 
 		// Index 0 is the player, so we start from index 1
 		bot := g.Players[i+1]
-		botHand.UpdateCards(bot.Hand, cardBackImage)
+		botViewCards := make([]view.Card, 0, len(bot.Hand))
+		for _, card := range bot.Hand {
+			botViewCards = append(botViewCards, view.FromEntityCard(card))
+		}
+		botHand.UpdateCards(botViewCards, cardBackImage)
 	}
 }
 

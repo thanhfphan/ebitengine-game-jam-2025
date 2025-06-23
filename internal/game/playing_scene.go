@@ -7,6 +7,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/thanhfphan/ebitengj2025/internal/ui"
+	"github.com/thanhfphan/ebitengj2025/internal/view"
 )
 
 type PlayingScene struct {
@@ -133,10 +134,8 @@ func (s *PlayingScene) UpdateTableCards(g *Game) {
 		return
 	}
 
-	// Tạo map các hình ảnh card
 	cardImages := make(map[string]*ebiten.Image)
 
-	// Lấy hình ảnh cho tất cả card trong TableStack
 	for _, recipe := range g.CardManager.TableStack.Receipes {
 		cardImg := g.AssetManager.GetCardImage(recipe.ID)
 		if cardImg != nil {
@@ -151,8 +150,9 @@ func (s *PlayingScene) UpdateTableCards(g *Game) {
 		}
 	}
 
-	// Cập nhật UI
-	s.tableCards.UpdateFromTableStack(g.CardManager.TableStack, cardImages)
+	viewTableStack := view.FromEntityTableStack(g.CardManager.TableStack)
+
+	s.tableCards.UpdateFromTableStack(viewTableStack, cardImages)
 }
 
 func (s *PlayingScene) Draw(screen *ebiten.Image, g *Game) {

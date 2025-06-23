@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/thanhfphan/ebitengj2025/internal/entity"
+	"github.com/thanhfphan/ebitengj2025/internal/view"
 )
 
 var _ Element = (*UIHand)(nil)
@@ -143,7 +143,7 @@ func (h *UIHand) PlaySelected() bool {
 	return false
 }
 
-func (h *UIHand) UpdateCards(cards []*entity.Card, cardImages map[string]*ebiten.Image) {
+func (h *UIHand) UpdateCards(cards []view.Card, cardImages map[string]*ebiten.Image) {
 	if len(cards) == 0 {
 		h.Cards = []*UICard{}
 		h.selectedCard = nil

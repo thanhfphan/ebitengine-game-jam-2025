@@ -7,7 +7,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"github.com/hajimehoshi/ebiten/v2/vector"
-	"github.com/thanhfphan/ebitengj2025/internal/entity"
+	"github.com/thanhfphan/ebitengj2025/internal/view"
 	"golang.org/x/image/font"
 )
 
@@ -79,7 +79,7 @@ func (h *UIBotHand) Draw(screen *ebiten.Image) {
 	}
 }
 
-func (h *UIBotHand) UpdateCards(cards []*entity.Card, cardBackImage *ebiten.Image) {
+func (h *UIBotHand) UpdateCards(cards []view.Card, cardBackImage *ebiten.Image) {
 	h.CardCount = len(cards)
 
 	// Create or update the UIImage for the card back
