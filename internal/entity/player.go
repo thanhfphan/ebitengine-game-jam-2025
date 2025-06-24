@@ -2,38 +2,45 @@ package entity
 
 type Player struct {
 	Entity
-	Hand []*Card
+	Hand      map[string]*Card
+	OrderHand []string
 }
 
 func NewPlayer(name string, ttype Type, posX, posY float64) *Player {
 	entity := NewEntity(ttype, name, posX, posY)
 
 	return &Player{
-		Entity: *entity,
-		Hand:   []*Card{},
+		Entity:    *entity,
+		Hand:      make(map[string]*Card),
+		OrderHand: []string{},
 	}
 }
 
 func (p *Player) AddCard(card *Card) {
-	p.Hand = append(p.Hand, card)
+	p.Hand[card.ID] = card
+	p.OrderHand = append(p.OrderHand, card.ID)
 }
 
-func (p *Player) RemoveCard(card *Card) {
-	for i, c := range p.Hand {
-		if c.ID == card.ID {
-			p.Hand = append(p.Hand[:i], p.Hand[i+1:]...)
-			return
+func (p *Player) GetCard(id string) *Card {
+	return p.Hand[id]
+}
+
+func (p *Player) GetCards() []*Card {
+	cards := make([]*Card, 0, len(p.Hand))
+	for _, card := range p.Hand {
+		cards = append(cards, card)
+	}
+	return cards
+}
+
+func (p *Player) RemoveCard(id string) {
+	for i, cardID := range p.OrderHand {
+		if cardID == id {
+			p.OrderHand = append(p.OrderHand[:i], p.OrderHand[i+1:]...)
+			delete(p.Hand, id)
+			break
 		}
 	}
-}
-
-func (p *Player) RemoveCardAt(index int) *Card {
-	if index < 0 || index >= len(p.Hand) {
-		return nil
-	}
-	removeCard := p.Hand[index]
-	p.Hand = append(p.Hand[:index], p.Hand[index+1:]...)
-	return removeCard
 }
 
 func (p *Player) IsBot() bool {

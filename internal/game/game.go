@@ -192,7 +192,8 @@ func (g *Game) UpdateHands(playerHand *ui.UIHand, botHands []*ui.UIBotHand) {
 	cardImages := make(map[string]*ebiten.Image)
 	viewCards := make([]view.Card, 0, len(g.Player.Hand))
 
-	for _, card := range g.Player.Hand {
+	for _, id := range g.Player.OrderHand {
+		card := g.Player.GetCard(id)
 		viewCards = append(viewCards, ToViewCard(card))
 		cardImg := g.AssetManager.GetCardImage(card.ID)
 		if cardImg == nil {
@@ -267,7 +268,7 @@ func (g *Game) Pass(playerID string) {
 }
 
 // PlayCard implements ai.GameLike.
-func (g *Game) PlayCard(playerID string, cardIdx int) error {
+func (g *Game) PlayCard(playerID string, cardID string) error {
 	current := g.TurnManager.Current()
 	if current == nil || current.ID != playerID || current.Finished {
 		fmt.Println("Cannot play card because it's not your turn. Player:", playerID, "Current:", current)
@@ -275,7 +276,7 @@ func (g *Game) PlayCard(playerID string, cardIdx int) error {
 	}
 
 	player := g.GetPlayer(playerID)
-	err := g.CardManager.PlayCard(player, cardIdx)
+	err := g.CardManager.PlayCard(player, cardID)
 	if err != nil {
 		fmt.Println("Error playing card:", err)
 		return err

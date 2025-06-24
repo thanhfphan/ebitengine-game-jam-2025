@@ -107,11 +107,12 @@ func (m *Manager) DealHands(players []*entity.Player) {
 	}
 }
 
-func (m *Manager) PlayCard(player *entity.Player, handIndex int) error {
-	removeCard := player.RemoveCardAt(handIndex)
+func (m *Manager) PlayCard(player *entity.Player, cardID string) error {
+	removeCard := player.GetCard(cardID)
 	if removeCard == nil {
-		return fmt.Errorf("invalid card index: %d", handIndex)
+		return fmt.Errorf("invalid card id: %s", cardID)
 	}
+	player.RemoveCard(removeCard.ID)
 
 	m.TableStack.AddCard(removeCard, player.ID)
 

@@ -16,8 +16,8 @@ type UIHand struct {
 	Cards          []*UICard
 	Spacing        int
 	selectedCard   *UICard
-	onPlayCard     func(cardIndex int)
-	onCardSelected func(cardIndx int) // New callback for card selection
+	onPlayCard     func(cardID string)
+	onCardSelected func(cardID string) // New callback for card selection
 	visible        bool
 	zIndex         int
 	tags           Tag
@@ -85,7 +85,7 @@ func (h *UIHand) HandleMouseDown(x, y int) bool {
 
 				// Notify that no card is selected
 				if h.onCardSelected != nil {
-					h.onCardSelected(-1)
+					h.onCardSelected("")
 				}
 			} else {
 				card.selected = true
@@ -93,7 +93,7 @@ func (h *UIHand) HandleMouseDown(x, y int) bool {
 
 				// Notify that a card is selected
 				if h.onCardSelected != nil {
-					h.onCardSelected(i)
+					h.onCardSelected(card.ID)
 				}
 			}
 
@@ -127,28 +127,22 @@ func (h *UIHand) Contains(x, y int) bool {
 	return handArea
 }
 
-func (h *UIHand) GetSelectedCardIndex() int {
+func (h *UIHand) GetSelectedCardID() string {
 	if h.selectedCard == nil {
-		return -1
+		return ""
 	}
 
-	for i, card := range h.Cards {
-		if card == h.selectedCard {
-			return i
-		}
-	}
-
-	return -1
+	return h.selectedCard.ID
 }
 
-func (h *UIHand) SetOnPlayCard(callback func(cardIndex int)) {
+func (h *UIHand) SetOnPlayCard(callback func(cardID string)) {
 	h.onPlayCard = callback
 }
 
 func (h *UIHand) PlaySelected() bool {
-	idx := h.GetSelectedCardIndex()
-	if idx >= 0 && h.onPlayCard != nil {
-		h.onPlayCard(idx)
+	id := h.GetSelectedCardID()
+	if id != "" && h.onPlayCard != nil {
+		h.onPlayCard(id)
 		return true
 	}
 
@@ -247,6 +241,6 @@ func (h *UIHand) SetPosition(x, y int) {
 	h.Y = y
 }
 
-func (h *UIHand) SetOnCardSelected(callback func(idx int)) {
+func (h *UIHand) SetOnCardSelected(callback func(cardID string)) {
 	h.onCardSelected = callback
 }

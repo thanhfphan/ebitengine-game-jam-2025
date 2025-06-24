@@ -5,6 +5,8 @@ import (
 	"encoding/binary"
 	"math/rand"
 	mrand "math/rand"
+
+	"github.com/thanhfphan/ebitengj2025/internal/entity"
 )
 
 var _ Bot = (*EasyBot)(nil)
@@ -33,6 +35,15 @@ func (b *EasyBot) PlayTurn(g GameLike, botID string) error {
 	}
 
 	idx := rand.Intn(len(player.Hand)) // pick random card
+	var card *entity.Card
+	i := 0
+	for _, c := range player.Hand {
+		if i == idx {
+			card = c
+			break
+		}
+		i++
+	}
 
-	return g.PlayCard(player.ID, idx)
+	return g.PlayCard(player.ID, card.ID)
 }

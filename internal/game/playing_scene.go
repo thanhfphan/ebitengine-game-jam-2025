@@ -44,15 +44,15 @@ func (s *PlayingScene) Enter(g *Game) {
 	handHeight := 160
 	s.playerHand = ui.NewUIHand(centerX-handWidth/2, 600, handWidth, handHeight)
 	s.playerHand.SetTags(ui.TagInGame)
-	s.playerHand.SetOnPlayCard(func(cardIndex int) {
+	s.playerHand.SetOnPlayCard(func(cardID string) {
 		if g.Player != nil {
-			g.PlayCard(g.Player.ID, cardIndex)
+			g.PlayCard(g.Player.ID, cardID)
 		}
 	})
 
 	// Add card selection handler to highlight matching recipes
-	s.playerHand.SetOnCardSelected(func(idx int) {
-		s.highlightMatchingRecipes(g, idx)
+	s.playerHand.SetOnCardSelected(func(cardID string) {
+		s.highlightMatchingRecipes(g, cardID)
 	})
 
 	g.UIManager.AddElement(s.playerHand)
@@ -170,7 +170,8 @@ func (s *PlayingScene) UpdateTableCards(g *Game) {
 	if s.playerHand != nil {
 		viewCards := make([]view.Card, 0)
 		if g.Player != nil {
-			for _, card := range g.Player.Hand {
+			for _, id := range g.Player.OrderHand {
+				card := g.Player.GetCard(id)
 				viewCards = append(viewCards, ToViewCard(card))
 				if cardImg := g.AssetManager.GetCardImage(card.ID); cardImg != nil {
 					cardImages[card.ID] = cardImg
@@ -191,13 +192,13 @@ func (s *PlayingScene) Draw(screen *ebiten.Image, g *Game) {
 }
 
 // Add a new function to highlight matching recipes
-func (s *PlayingScene) highlightMatchingRecipes(g *Game, selectedCardIdx int) {
-	if selectedCardIdx < 0 {
+func (s *PlayingScene) highlightMatchingRecipes(g *Game, cardID string) {
+	if cardID == "" {
 		s.tableCards.ResetCanMakeDish()
 		return
 	}
 
-	selectedCard := g.Player.Hand[selectedCardIdx]
+	selectedCard := g.Player.GetCard(cardID)
 	if selectedCard == nil || selectedCard.Type != entity.CardIngredient {
 		return
 	}

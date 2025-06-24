@@ -10,13 +10,13 @@ type Bot interface {
 
 type GameLike interface {
 	GetPlayerState(id string) *PlayerState
-	PlayCard(playerID string, index int) error
+	PlayCard(playerID string, cardID string) error
 	Pass(playerID string)
 }
 
 type PlayerState struct {
 	ID       string
-	Hand     []*entity.Card
+	Hand     map[string]*entity.Card
 	IsBot    bool
 	Passed   bool
 	Finished bool
