@@ -16,6 +16,7 @@ import (
 	"github.com/thanhfphan/ebitengj2025/internal/ui"
 	"github.com/thanhfphan/ebitengj2025/internal/view"
 	"github.com/thanhfphan/ebitengj2025/internal/world"
+	"golang.org/x/image/font"
 )
 
 var (
@@ -177,6 +178,16 @@ func (g *Game) UpdateHands(playerHand *ui.UIHand, botHands []*ui.UIBotHand) {
 		return
 	}
 
+	// Get fonts for card text
+	fonts := map[string]font.Face{
+		"title":    g.AssetManager.GetFont("nunito", 16),
+		"subtitle": g.AssetManager.GetFont("nunito", 12),
+		"body":     g.AssetManager.GetFont("nunito", 10),
+	}
+
+	// Convert entity.TableStack to view.TableStack for highlighting
+	viewTableStack := view.FromEntityTableStack(g.CardManager.TableStack)
+
 	// Update player's hand
 	cardImages := make(map[string]*ebiten.Image)
 	viewCards := make([]view.Card, 0, len(g.Player.Hand))
@@ -189,7 +200,7 @@ func (g *Game) UpdateHands(playerHand *ui.UIHand, botHands []*ui.UIBotHand) {
 		}
 		cardImages[card.ID] = cardImg
 	}
-	playerHand.UpdateCards(viewCards, cardImages)
+	playerHand.UpdateCards(viewCards, cardImages, viewTableStack, fonts)
 
 	// Update bot hands
 	cardBackImage := g.AssetManager.GetCardBackImage()

@@ -6,8 +6,10 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"github.com/thanhfphan/ebitengj2025/internal/entity"
 	"github.com/thanhfphan/ebitengj2025/internal/ui"
 	"github.com/thanhfphan/ebitengj2025/internal/view"
+	"golang.org/x/image/font"
 )
 
 type PlayingScene struct {
@@ -47,6 +49,12 @@ func (s *PlayingScene) Enter(g *Game) {
 			g.PlayCard(g.Player.ID, cardIndex)
 		}
 	})
+
+	// Add card selection handler to highlight matching recipes
+	s.playerHand.SetOnCardSelected(func(idx int) {
+		s.highlightMatchingRecipes(g, idx)
+	})
+
 	g.UIManager.AddElement(s.playerHand)
 	s.elements = append(s.elements, s.playerHand)
 
@@ -150,9 +158,27 @@ func (s *PlayingScene) UpdateTableCards(g *Game) {
 		}
 	}
 
-	viewTableStack := view.FromEntityTableStack(g.CardManager.TableStack)
+	fonts := map[string]font.Face{
+		"title":    g.AssetManager.GetFont("nunito", 16),
+		"subtitle": g.AssetManager.GetFont("nunito", 12),
+		"body":     g.AssetManager.GetFont("nunito", 10),
+	}
 
-	s.tableCards.UpdateFromTableStack(viewTableStack, cardImages)
+	viewTableStack := view.FromEntityTableStack(g.CardManager.TableStack)
+	s.tableCards.UpdateFromTableStack(viewTableStack, cardImages, fonts)
+
+	if s.playerHand != nil {
+		viewCards := make([]view.Card, 0)
+		if g.Player != nil {
+			for _, card := range g.Player.Hand {
+				viewCards = append(viewCards, view.FromEntityCard(card))
+				if cardImg := g.AssetManager.GetCardImage(card.ID); cardImg != nil {
+					cardImages[card.ID] = cardImg
+				}
+			}
+		}
+		s.playerHand.UpdateCards(viewCards, cardImages, viewTableStack, fonts)
+	}
 }
 
 func (s *PlayingScene) Draw(screen *ebiten.Image, g *Game) {
@@ -162,4 +188,21 @@ func (s *PlayingScene) Draw(screen *ebiten.Image, g *Game) {
 		mx, my := ebiten.CursorPosition()
 		g.Renderer.DrawDebug(screen, fmt.Sprintf("Cursor: %d, %d", mx, my))
 	}
+}
+
+// Add a new function to highlight matching recipes
+func (s *PlayingScene) highlightMatchingRecipes(g *Game, selectedCardIdx int) {
+	if selectedCardIdx < 0 {
+		s.tableCards.ResetCanMakeDish()
+		return
+	}
+
+	selectedCard := g.Player.Hand[selectedCardIdx]
+	if selectedCard == nil || selectedCard.Type != entity.CardIngredient {
+		return
+	}
+
+	s.tableCards.ResetCanMakeDish()
+	viewTableStack := view.FromEntityTableStack(g.CardManager.TableStack)
+	s.tableCards.UpdateCanMakeDish(selectedCard.IngredientID, viewTableStack)
 }

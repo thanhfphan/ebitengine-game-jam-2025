@@ -5,35 +5,36 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/thanhfphan/ebitengj2025/internal/view"
+	"golang.org/x/image/font"
 )
 
 var _ Element = (*UIHand)(nil)
 
 type UIHand struct {
-	X, Y          int
-	Width, Height int
-	Cards         []*UICard
-	Spacing       int
-	MaxCards      int
-
-	visible      bool
-	zIndex       int
-	selectedCard *UICard
-	onPlayCard   func(cardIndex int)
-	tags         Tag
+	X, Y           int
+	Width, Height  int
+	Cards          []*UICard
+	Spacing        int
+	selectedCard   *UICard
+	onPlayCard     func(cardIndex int)
+	onCardSelected func(cardIndx int) // New callback for card selection
+	visible        bool
+	zIndex         int
+	tags           Tag
 }
 
-func NewUIHand(x, y, width, height int) *UIHand {
+func NewUIHand(x, y, w, h int) *UIHand {
 	return &UIHand{
-		X:        x,
-		Y:        y,
-		Width:    width,
-		Height:   height,
-		Cards:    []*UICard{},
-		Spacing:  10,
-		MaxCards: 10,
-		visible:  true,
-		zIndex:   0,
+		X:            x,
+		Y:            y,
+		Width:        w,
+		Height:       h,
+		Cards:        []*UICard{},
+		Spacing:      20,
+		selectedCard: nil,
+		visible:      true,
+		zIndex:       0,
+		tags:         TagNone,
 	}
 }
 
@@ -80,9 +81,20 @@ func (h *UIHand) HandleMouseDown(x, y int) bool {
 			if card.selected {
 				card.selected = false // Deselect if already selected
 				card.Y = h.Y
+				h.selectedCard = nil
+
+				// Notify that no card is selected
+				if h.onCardSelected != nil {
+					h.onCardSelected(-1)
+				}
 			} else {
 				card.selected = true
 				card.Y = h.Y - 20 // Move card up when selected
+
+				// Notify that a card is selected
+				if h.onCardSelected != nil {
+					h.onCardSelected(i)
+				}
 			}
 
 			return true
@@ -143,7 +155,7 @@ func (h *UIHand) PlaySelected() bool {
 	return false
 }
 
-func (h *UIHand) UpdateCards(cards []view.Card, cardImages map[string]*ebiten.Image) {
+func (h *UIHand) UpdateCards(cards []view.Card, cardImages map[string]*ebiten.Image, tableStack view.TableStack, fonts map[string]font.Face) {
 	if len(cards) == 0 {
 		h.Cards = []*UICard{}
 		h.selectedCard = nil
@@ -156,6 +168,17 @@ func (h *UIHand) UpdateCards(cards []view.Card, cardImages map[string]*ebiten.Im
 	availableWidth := h.Width - cardWidth
 	if len(cards) > 1 {
 		h.Spacing = min(h.Spacing, availableWidth/(len(cards)-1))
+	}
+
+	// Create a map of ingredient names for recipe requirements
+	ingredientNames := make(map[string]string)
+	for _, card := range cards {
+		if card.Type == "ingredient" {
+			ingredientNames[card.IngredientID] = card.Name
+		}
+	}
+	for _, card := range tableStack.MapIngredients {
+		ingredientNames[card.IngredientID] = card.Name
 	}
 
 	existingCards := make(map[string]*UICard)
@@ -179,8 +202,12 @@ func (h *UIHand) UpdateCards(cards []view.Card, cardImages map[string]*ebiten.Im
 				continue
 			}
 			uiCard = NewUICard(card.ID, img, cardWidth, cardHeight)
-			uiCard.SetTags(h.tags)
 		}
+
+		uiCard.SetTags(h.tags)
+		uiCard.SetCardData(card, fonts["title"], fonts["subtitle"], fonts["body"])
+		uiCard.SetRequirementNames(ingredientNames)
+		uiCard.UpdateHightlightingHandRecipes(tableStack)
 
 		uiCard.X = h.X + i*(cardWidth+h.Spacing)
 
@@ -218,4 +245,8 @@ func (h *UIHand) SetDraggable(draggable bool) {}
 func (h *UIHand) SetPosition(x, y int) {
 	h.X = x
 	h.Y = y
+}
+
+func (h *UIHand) SetOnCardSelected(callback func(idx int)) {
+	h.onCardSelected = callback
 }

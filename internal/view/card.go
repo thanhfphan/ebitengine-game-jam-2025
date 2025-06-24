@@ -2,19 +2,25 @@ package view
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/thanhfphan/ebitengj2025/internal/entity"
 )
 
 // Card represents a card view that can be used by the UI layer
 type Card struct {
-	ID            string
-	Image         *ebiten.Image
-	Type          entity.CartType
-	RequiredCards []string // For recipe cards
+	ID    string
+	Image *ebiten.Image
+	Type  string // "ingredient" or "recipe"
+	Name  string
+	Icon  string
+
+	IngredientID string // For ingredient cards
+
+	RequiredIngredientIDs  []string        // For recipe cards
+	CurrentIngredientCount map[string]bool // For recipe cards
 }
 
 // TableStack represents a collection of cards on the table
 type TableStack struct {
-	Recipes     []Card
-	Ingredients []Card
+	MapRecipes     map[string]Card
+	MapIngredients map[string]Card
+	OrderRecipes   []string // LIFO order
 }

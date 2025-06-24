@@ -2,10 +2,12 @@ package ui
 
 import (
 	"image/color"
+	"slices"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/thanhfphan/ebitengj2025/internal/view"
+	"golang.org/x/image/font"
 )
 
 var _ Element = (*UITableCards)(nil)
@@ -104,14 +106,65 @@ func (u *UITableCards) HandleMouseUp(x, y int) bool {
 	return false
 }
 
-func (u *UITableCards) UpdateFromTableStack(tableStack view.TableStack, cardImages map[string]*ebiten.Image) {
+func (u *UITableCards) ResetCanMakeDish() {
+	for _, card := range u.Cards {
+		card.CanMakeDish = false
+	}
+}
+
+func (u *UITableCards) UpdateCanMakeDish(ingredientID string, tableStack view.TableStack) {
+	if ingredientID == "" {
+		return
+	}
+
+	for i := len(tableStack.OrderRecipes) - 1; i >= 0; i-- {
+		recipeID := tableStack.OrderRecipes[i]
+		recipe := tableStack.MapRecipes[recipeID]
+
+		if !slices.Contains(recipe.RequiredIngredientIDs, ingredientID) {
+			continue
+		}
+		// already have this ingredient
+		if recipe.CurrentIngredientCount[ingredientID] {
+			continue
+		}
+		count := 0
+		for _, has := range recipe.CurrentIngredientCount {
+			if has {
+				count++
+			}
+		}
+		// not enough cards to make this recipe(need 1 more)
+		if len(recipe.RequiredIngredientIDs) != count+1 {
+			continue
+		}
+
+		for _, card := range u.Cards {
+			if card.ID == recipeID {
+				card.CanMakeDish = true
+			}
+		}
+		break // Only highlight the topmost recipe
+	}
+
+}
+
+// UpdateFromTableStack updates the UI cards based on the view.TableStack
+func (u *UITableCards) UpdateFromTableStack(tableStack view.TableStack, cardImages map[string]*ebiten.Image, fonts map[string]font.Face) {
 	u.cleanupCards(tableStack)
 
-	for i, recipe := range tableStack.Recipes {
+	// Create a map of ingredient names for recipe requirements
+	ingredientNames := make(map[string]string)
+	for _, ing := range tableStack.MapIngredients {
+		ingredientNames[ing.ID] = ing.Name
+	}
+
+	for _, recipe := range tableStack.MapRecipes {
 		found := false
 		for _, c := range u.Cards {
 			if c.ID == recipe.ID {
 				found = true
+				c.UpdateHightlightingHandRecipes(tableStack)
 				break
 			}
 		}
@@ -125,7 +178,11 @@ func (u *UITableCards) UpdateFromTableStack(tableStack view.TableStack, cardImag
 			card := NewUICard(recipe.ID, img, 80, 120)
 			card.SetTags(u.tags)
 			card.SetDraggable(true)
+			card.SetCardData(recipe, fonts["title"], fonts["subtitle"], fonts["body"])
+			card.SetRequirementNames(ingredientNames)
+			card.UpdateHightlightingHandRecipes(tableStack)
 
+			i := len(u.Cards) + 1
 			targetX := u.X - 100 + i*40
 			targetY := u.Y - u.Radius/2 - 20
 
@@ -137,7 +194,7 @@ func (u *UITableCards) UpdateFromTableStack(tableStack view.TableStack, cardImag
 		}
 	}
 
-	for i, ingredient := range tableStack.Ingredients {
+	for _, ingredient := range tableStack.MapIngredients {
 		found := false
 		for _, c := range u.Cards {
 			if c.ID == ingredient.ID {
@@ -155,7 +212,9 @@ func (u *UITableCards) UpdateFromTableStack(tableStack view.TableStack, cardImag
 			card := NewUICard(ingredient.ID, img, 80, 120)
 			card.SetTags(u.tags)
 			card.SetDraggable(true)
+			card.SetCardData(ingredient, fonts["title"], fonts["subtitle"], fonts["body"])
 
+			i := len(u.Cards) + 1
 			targetX := u.X - 80 + i*30
 			targetY := u.Y + u.Radius/2 - 60
 			card.X = targetX
@@ -170,11 +229,11 @@ func (u *UITableCards) UpdateFromTableStack(tableStack view.TableStack, cardImag
 // cleanupCards removes any cards that are no longer in the table stack
 func (u *UITableCards) cleanupCards(tableStack view.TableStack) {
 	cardIDs := make(map[string]bool)
-	for _, recipe := range tableStack.Recipes {
+	for _, recipe := range tableStack.MapRecipes {
 		cardIDs[recipe.ID] = true
 	}
 
-	for _, ingredient := range tableStack.Ingredients {
+	for _, ingredient := range tableStack.MapIngredients {
 		cardIDs[ingredient.ID] = true
 	}
 
@@ -199,4 +258,9 @@ func (u *UITableCards) SetDraggable(draggable bool) {}
 func (u *UITableCards) SetPosition(x, y int) {
 	u.X = x
 	u.Y = y
+}
+
+// Add a method to get all cards
+func (u *UITableCards) GetCards() []*UICard {
+	return u.Cards
 }
