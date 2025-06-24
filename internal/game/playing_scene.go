@@ -164,14 +164,14 @@ func (s *PlayingScene) UpdateTableCards(g *Game) {
 		"body":     g.AssetManager.GetFont("nunito", 10),
 	}
 
-	viewTableStack := view.FromEntityTableStack(g.CardManager.TableStack)
+	viewTableStack := ToViewTableStack(g.CardManager.TableStack)
 	s.tableCards.UpdateFromTableStack(viewTableStack, cardImages, fonts)
 
 	if s.playerHand != nil {
 		viewCards := make([]view.Card, 0)
 		if g.Player != nil {
 			for _, card := range g.Player.Hand {
-				viewCards = append(viewCards, view.FromEntityCard(card))
+				viewCards = append(viewCards, ToViewCard(card))
 				if cardImg := g.AssetManager.GetCardImage(card.ID); cardImg != nil {
 					cardImages[card.ID] = cardImg
 				}
@@ -203,6 +203,6 @@ func (s *PlayingScene) highlightMatchingRecipes(g *Game, selectedCardIdx int) {
 	}
 
 	s.tableCards.ResetCanMakeDish()
-	viewTableStack := view.FromEntityTableStack(g.CardManager.TableStack)
+	viewTableStack := ToViewTableStack(g.CardManager.TableStack)
 	s.tableCards.UpdateCanMakeDish(selectedCard.IngredientID, viewTableStack)
 }

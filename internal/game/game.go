@@ -186,14 +186,14 @@ func (g *Game) UpdateHands(playerHand *ui.UIHand, botHands []*ui.UIBotHand) {
 	}
 
 	// Convert entity.TableStack to view.TableStack for highlighting
-	viewTableStack := view.FromEntityTableStack(g.CardManager.TableStack)
+	viewTableStack := ToViewTableStack(g.CardManager.TableStack)
 
 	// Update player's hand
 	cardImages := make(map[string]*ebiten.Image)
 	viewCards := make([]view.Card, 0, len(g.Player.Hand))
 
 	for _, card := range g.Player.Hand {
-		viewCards = append(viewCards, view.FromEntityCard(card))
+		viewCards = append(viewCards, ToViewCard(card))
 		cardImg := g.AssetManager.GetCardImage(card.ID)
 		if cardImg == nil {
 			cardImg = ebiten.NewImage(80, 120)
@@ -217,7 +217,7 @@ func (g *Game) UpdateHands(playerHand *ui.UIHand, botHands []*ui.UIBotHand) {
 		bot := g.Players[i+1]
 		botViewCards := make([]view.Card, 0, len(bot.Hand))
 		for _, card := range bot.Hand {
-			botViewCards = append(botViewCards, view.FromEntityCard(card))
+			botViewCards = append(botViewCards, ToViewCard(card))
 		}
 		botHand.UpdateCards(botViewCards, cardBackImage)
 	}
