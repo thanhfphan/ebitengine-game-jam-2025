@@ -7,79 +7,85 @@ import (
 )
 
 type Manager struct {
-	Elements       []Element
-	TopZIndex      int
-	ActiveElement  Element
-	VisibilityMask Tag
+	elements       []Element
+	topzindex      int
+	activeElement  Element
+	visibilityMask Tag
+	needSort       bool
 }
 
 func NewManager() *Manager {
 	return &Manager{
-		Elements:       make([]Element, 0),
-		TopZIndex:      0,
-		ActiveElement:  nil,
-		VisibilityMask: TagNone,
+		elements:       make([]Element, 0),
+		topzindex:      0,
+		activeElement:  nil,
+		visibilityMask: TagNone,
+		needSort:       false,
 	}
 }
 
 func (m *Manager) Update() {
-	for _, e := range m.Elements {
-		if e.IsVisible() && (e.GetTags()&m.VisibilityMask) != 0 {
+	for _, e := range m.elements {
+		if e.IsVisible() && (e.GetTags()&m.visibilityMask) != 0 {
 			e.Update()
 		}
 	}
 }
 
 func (m *Manager) Draw(screen *ebiten.Image) {
-	sort.Slice(m.Elements, func(i, j int) bool {
-		return m.Elements[i].GetZIndex() < m.Elements[j].GetZIndex()
-	})
+	if m.needSort {
+		sort.Slice(m.elements, func(i, j int) bool {
+			return m.elements[i].GetZIndex() < m.elements[j].GetZIndex()
+		})
+		m.needSort = false
+	}
 
-	for _, e := range m.Elements {
-		if e.IsVisible() && (e.GetTags()&m.VisibilityMask) != 0 {
+	for _, e := range m.elements {
+		if e.IsVisible() && (e.GetTags()&m.visibilityMask) != 0 {
 			e.Draw(screen)
 		}
 	}
 }
 
 func (m *Manager) AddElement(element Element) {
-	m.Elements = append(m.Elements, element)
+	m.elements = append(m.elements, element)
 	m.BringToFront(element)
 }
 
 func (m *Manager) RemoveElement(element Element) {
-	for i, e := range m.Elements {
+	for i, e := range m.elements {
 		if e == element {
-			m.Elements = append(m.Elements[:i], m.Elements[i+1:]...)
+			m.elements = append(m.elements[:i], m.elements[i+1:]...)
+			m.activeElement = nil
 			break
 		}
 	}
 }
 
 func (m *Manager) HandleMouseDown(x, y int) bool {
-	for i := len(m.Elements) - 1; i >= 0; i-- {
-		element := m.Elements[i]
+	for i := len(m.elements) - 1; i >= 0; i-- {
+		element := m.elements[i]
 		if element.IsVisible() && element.Contains(x, y) {
 			if element.HandleMouseDown(x, y) {
 				if !element.IsStatic() {
 					m.BringToFront(element)
 				}
-				m.ActiveElement = element
+				m.activeElement = element
 				return true
 			}
 		}
 	}
-	m.ActiveElement = nil
+	m.activeElement = nil
 	return false
 }
 
 func (m *Manager) HandleMouseUp(x, y int) bool {
-	if m.ActiveElement != nil {
-		return m.ActiveElement.HandleMouseUp(x, y)
+	if m.activeElement != nil {
+		return m.activeElement.HandleMouseUp(x, y)
 	}
 
-	for i := len(m.Elements) - 1; i >= 0; i-- {
-		element := m.Elements[i]
+	for i := len(m.elements) - 1; i >= 0; i-- {
+		element := m.elements[i]
 		if element.IsVisible() && element.HandleMouseUp(x, y) {
 			return true
 		}
@@ -88,10 +94,11 @@ func (m *Manager) HandleMouseUp(x, y int) bool {
 }
 
 func (m *Manager) BringToFront(element Element) {
-	m.TopZIndex++
-	element.SetZIndex(m.TopZIndex)
+	m.topzindex++
+	element.SetZIndex(m.topzindex)
+	m.needSort = true
 }
 
 func (m *Manager) SetMask(mask Tag) {
-	m.VisibilityMask = mask
+	m.visibilityMask = mask
 }
