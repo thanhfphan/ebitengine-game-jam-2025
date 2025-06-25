@@ -133,6 +133,7 @@ func (g *Game) Update() error {
 
 	g.UIManager.Update()
 	g.Renderer.Update()
+	g.AssetManager.Update()
 
 	if g.State == GameStateQuit {
 		return ebiten.Termination
