@@ -78,6 +78,9 @@ func New() (*Game, error) {
 	g.AssetManager.LoadFont("nunito", fonts.NunitoRegular_ttf, 24)
 	g.AssetManager.LoadFont("nunito", fonts.NunitoRegular_ttf, 32)
 	g.AssetManager.LoadFont("nunito", fonts.NunitoRegular_ttf, 48)
+	g.AssetManager.LoadFont("nunito", fonts.NunitoRegular_ttf, 18)
+
+	// g.AssetManager.LoadSound("click", "assets/sounds/click.wav")
 
 	// Set initial scene to main menu
 	g.SetScene(NewMainMenuScene())
