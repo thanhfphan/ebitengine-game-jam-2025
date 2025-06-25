@@ -144,14 +144,14 @@ func (s *PlayingScene) UpdateTableCards(g *Game) {
 
 	cardImages := make(map[string]*ebiten.Image)
 
-	for _, recipe := range g.CardManager.TableStack.Receipes {
+	for _, recipe := range g.CardManager.TableStack.GetCardsByType(entity.CardTypeRecipe) {
 		cardImg := g.AssetManager.GetCardImage(recipe.ID)
 		if cardImg != nil {
 			cardImages[recipe.ID] = cardImg
 		}
 	}
 
-	for _, ingredient := range g.CardManager.TableStack.Ingredients {
+	for _, ingredient := range g.CardManager.TableStack.GetCardsByType(entity.CardTypeIngredient) {
 		cardImg := g.AssetManager.GetCardImage(ingredient.ID)
 		if cardImg != nil {
 			cardImages[ingredient.ID] = cardImg
@@ -199,7 +199,7 @@ func (s *PlayingScene) highlightMatchingRecipes(g *Game, cardID string) {
 	}
 
 	selectedCard := g.Player.GetCard(cardID)
-	if selectedCard == nil || selectedCard.Type != entity.CardIngredient {
+	if selectedCard == nil || selectedCard.Type != entity.CardTypeIngredient {
 		return
 	}
 

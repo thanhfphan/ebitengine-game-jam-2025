@@ -3,8 +3,8 @@ package entity
 type CartType int
 
 const (
-	CardIngredient CartType = iota
-	CardRecipe
+	CardTypeIngredient CartType = iota
+	CardTypeRecipe
 )
 
 type Card struct {

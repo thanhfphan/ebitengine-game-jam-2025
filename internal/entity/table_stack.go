@@ -1,107 +1,95 @@
 package entity
 
+type CardOnTable struct {
+	Card     *Card
+	PlayerID string
+}
+
 type TableStack struct {
-	Receipes      []*Card
-	Ingredients   []*Card
-	PlayerCardMap map[string][]string // playerID -> list of cardIDs
+	cards     map[string]*CardOnTable // cardID -> CardOnTable
+	playOrder []string                // Oldest to newest(last put on table)
 }
 
 func NewTableStack() *TableStack {
 	return &TableStack{
-		Receipes:      []*Card{},
-		Ingredients:   []*Card{},
-		PlayerCardMap: make(map[string][]string),
+		cards:     make(map[string]*CardOnTable),
+		playOrder: []string{},
 	}
 }
 
 func (t *TableStack) Clear() {
-	t.Receipes = []*Card{}
-	t.Ingredients = []*Card{}
-	t.PlayerCardMap = make(map[string][]string)
+	t.cards = make(map[string]*CardOnTable)
 }
 
 func (t *TableStack) AddCard(card *Card, playerID string) {
-	if card.Type == CardRecipe {
-		t.AddReceipe(card)
-	} else {
-		t.AddIngredient(card)
+	if _, ok := t.cards[card.ID]; ok {
+		return
 	}
-	t.PlayerCardMap[playerID] = append(t.PlayerCardMap[playerID], card.ID)
+
+	t.cards[card.ID] = &CardOnTable{
+		Card:     card,
+		PlayerID: playerID,
+	}
+	t.playOrder = append(t.playOrder, card.ID)
 }
 
-func (t *TableStack) AddReceipe(card *Card) {
-	t.Receipes = append(t.Receipes, card)
-}
-
-func (t *TableStack) AddIngredient(card *Card) {
-	t.Ingredients = append(t.Ingredients, card)
-}
-
-func (t *TableStack) RemoveReceipe(card *Card) {
-	for i, c := range t.Receipes {
-		if c.ID == card.ID {
-			t.Receipes = append(t.Receipes[:i], t.Receipes[i+1:]...)
-			return
+func (t *TableStack) RemoveCard(cardID string) {
+	delete(t.cards, cardID)
+	for i, id := range t.playOrder {
+		if id == cardID {
+			t.playOrder = append(t.playOrder[:i], t.playOrder[i+1:]...)
+			break
 		}
 	}
 }
 
-func (t *TableStack) RemoveReceipeAt(idx int) *Card {
-	if idx < 0 || idx >= len(t.Receipes) {
-		return nil
-	}
-
-	removeCard := t.Receipes[idx]
-	t.Receipes = append(t.Receipes[:idx], t.Receipes[idx+1:]...)
-	return removeCard
-}
-
-func (t *TableStack) RemoveIngredient(card *Card) {
-	for i, c := range t.Ingredients {
-		if c.ID == card.ID {
-			t.Ingredients = append(t.Ingredients[:i], t.Ingredients[i+1:]...)
-			return
+// GetAllCardsInOrder returns all cards in the order they were played
+func (t *TableStack) GetAllCardsInOrder() []*Card {
+	var result []*Card
+	for _, id := range t.playOrder {
+		if cardEntry, ok := t.cards[id]; ok {
+			result = append(result, cardEntry.Card)
 		}
 	}
+	return result
 }
 
-func (t *TableStack) RemoveIngredientAt(idx int) *Card {
-	if idx < 0 || idx >= len(t.Ingredients) {
-		return nil
+// GetAllCardsInReverseOrder returns all cards in the reverse order they were played
+func (t *TableStack) GetAllCardsInReverseOrder() []*Card {
+	var result []*Card
+	for i := len(t.playOrder) - 1; i >= 0; i-- {
+		if cardEntry, ok := t.cards[t.playOrder[i]]; ok {
+			result = append(result, cardEntry.Card)
+		}
 	}
-
-	removeCard := t.Ingredients[idx]
-	t.Ingredients = append(t.Ingredients[:idx], t.Ingredients[idx+1:]...)
-	return removeCard
+	return result
 }
 
-// HasPlayerCards checks if a player still has any cards on the table
+func (t *TableStack) GetCardsByType(cardType CartType) []*Card {
+	var result []*Card
+	for _, c := range t.cards {
+		if c.Card.Type == cardType {
+			result = append(result, c.Card)
+		}
+	}
+	return result
+}
+
+func (t *TableStack) GetCardsByPlayer(playerID string) []*Card {
+	var result []*Card
+	for _, c := range t.cards {
+		if c.PlayerID == playerID {
+			result = append(result, c.Card)
+		}
+	}
+	return result
+}
+
 func (t *TableStack) HasPlayerCards(playerID string) bool {
-	// Get all card IDs played by this player
-	cardIDs, exists := t.PlayerCardMap[playerID]
-	if !exists || len(cardIDs) == 0 {
-		return false
-	}
-
-	// Check if any of those cards are still on the table
-	for _, cardID := range cardIDs {
-		for _, card := range t.Ingredients {
-			if card.ID == cardID {
-				return true
-			}
+	for _, c := range t.cards {
+		if c.PlayerID == playerID {
+			return true
 		}
 	}
-
 	return false
-}
-
-func (t *TableStack) RemoveCardFromPlayerTracking(cardID string) {
-	for playerID, cardIDs := range t.PlayerCardMap {
-		for i, id := range cardIDs {
-			if id == cardID {
-				t.PlayerCardMap[playerID] = append(cardIDs[:i], cardIDs[i+1:]...)
-				break
-			}
-		}
-	}
 }

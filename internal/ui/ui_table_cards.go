@@ -117,8 +117,8 @@ func (u *UITableCards) UpdateCanMakeDish(ingredientID string, tableStack view.Ta
 		return
 	}
 
-	for i := len(tableStack.OrderRecipes) - 1; i >= 0; i-- {
-		recipeID := tableStack.OrderRecipes[i]
+	for i := 0; i < len(tableStack.StackRecipes); i++ {
+		recipeID := tableStack.StackRecipes[i]
 		recipe := tableStack.MapRecipes[recipeID]
 
 		if !slices.Contains(recipe.RequiredIngredientIDs, ingredientID) {

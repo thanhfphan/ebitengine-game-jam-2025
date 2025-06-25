@@ -7,7 +7,7 @@ import (
 
 func ToViewCard(card *entity.Card) view.Card {
 	cardType := "ingredient"
-	if card.Type == entity.CardRecipe {
+	if card.Type == entity.CardTypeRecipe {
 		cardType = "recipe"
 	}
 
@@ -29,27 +29,31 @@ func ToViewTableStack(stack *entity.TableStack) view.TableStack {
 	result := view.TableStack{
 		MapRecipes:     make(map[string]view.Card),
 		MapIngredients: make(map[string]view.Card),
-		OrderRecipes:   []string{},
+		StackRecipes:   []string{},
 	}
 
-	for _, ing := range stack.Ingredients {
-		result.MapIngredients[ing.IngredientID] = ToViewCard(ing)
+	for _, card := range stack.GetCardsByType(entity.CardTypeIngredient) {
+		if card.IngredientID == "" {
+			// should not happen
+			panic("Ingredient card has no ingredient ID")
+		}
+		result.MapIngredients[card.IngredientID] = ToViewCard(card)
 	}
 
-	for _, recipe := range stack.Receipes {
-		recipeCard := ToViewCard(recipe)
+	for _, card := range stack.GetAllCardsInReverseOrder() {
+		if card.Type != entity.CardTypeRecipe {
+			continue
+		}
+
+		recipeCard := ToViewCard(card)
 		for _, reqID := range recipeCard.RequiredIngredientIDs {
 			if _, has := result.MapIngredients[reqID]; !has {
 				continue
 			}
 			recipeCard.CurrentIngredientCount[reqID] = true
 		}
-		result.MapRecipes[recipe.ID] = recipeCard
-	}
-
-	for i := len(stack.Receipes) - 1; i >= 0; i-- {
-		recipe := stack.Receipes[i]
-		result.OrderRecipes = append(result.OrderRecipes, recipe.ID)
+		result.MapRecipes[card.ID] = recipeCard
+		result.StackRecipes = append(result.StackRecipes, card.ID)
 	}
 
 	return result

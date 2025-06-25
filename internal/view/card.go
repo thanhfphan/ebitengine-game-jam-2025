@@ -22,5 +22,5 @@ type Card struct {
 type TableStack struct {
 	MapRecipes     map[string]Card
 	MapIngredients map[string]Card
-	OrderRecipes   []string // LIFO order
+	StackRecipes   []string // Newest(last put on table) to oldest
 }

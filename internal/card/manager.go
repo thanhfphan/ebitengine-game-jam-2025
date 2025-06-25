@@ -7,7 +7,6 @@ import (
 	"fmt"
 	mrand "math/rand"
 	"os"
-	"sort"
 
 	"github.com/thanhfphan/ebitengj2025/internal/entity"
 )
@@ -67,7 +66,7 @@ func (m *Manager) LoadDeck(theme string) error {
 	for _, r := range rcpFile.Recipes {
 		card := &entity.Card{
 			Entity:              *entity.NewEntity(entity.TypeCard, r.Name, 0, 0),
-			Type:                entity.CardRecipe,
+			Type:                entity.CardTypeRecipe,
 			RequiredIngredients: r.Requires,
 		}
 		m.Deck = append(m.Deck, card)
@@ -80,7 +79,7 @@ func (m *Manager) LoadDeck(theme string) error {
 
 			m.Deck = append(m.Deck, &entity.Card{
 				Entity:       *entity.NewEntity(entity.TypeCard, ing.Name, 0, 0),
-				Type:         entity.CardIngredient,
+				Type:         entity.CardTypeIngredient,
 				IngredientID: ingID,
 			})
 		}
@@ -124,55 +123,47 @@ func (m *Manager) PlayCard(player *entity.Player, cardID string) error {
 }
 
 func (m *Manager) TryMakeDish() bool {
-	if len(m.TableStack.Receipes) == 0 {
-		return false
+	var recipes []*entity.Card
+	var ingredients []*entity.Card
+
+	for _, card := range m.TableStack.GetAllCardsInReverseOrder() {
+		if card.Type == entity.CardTypeRecipe {
+			recipes = append(recipes, card)
+		} else if card.Type == entity.CardTypeIngredient {
+			ingredients = append(ingredients, card)
+		}
 	}
 
-	// LIFO traversal
-	for rIdx := len(m.TableStack.Receipes) - 1; rIdx >= 0; rIdx-- {
-		recipe := m.TableStack.Receipes[rIdx]
-
+	for _, r := range recipes {
 		need := make(map[string]int)
-		for _, ing := range recipe.RequiredIngredients {
+		for _, ing := range r.RequiredIngredients {
 			need[ing]++
 		}
 
-		var usedIngIdx []int
-		var usedCardIDs []string
-		for iIdx := len(m.TableStack.Ingredients) - 1; iIdx >= 0; iIdx-- {
-			card := m.TableStack.Ingredients[iIdx]
-			if cnt, ok := need[card.IngredientID]; ok && cnt > 0 {
-				need[card.IngredientID]--
-				usedIngIdx = append(usedIngIdx, iIdx)
-				usedCardIDs = append(usedCardIDs, card.ID)
+		var usedIDs []string
+		usedCount := 0
+
+		for _, ing := range ingredients {
+			if cnt, ok := need[ing.IngredientID]; ok && cnt > 0 {
+				need[ing.IngredientID]--
+				usedIDs = append(usedIDs, ing.ID)
+				usedCount++
+				if usedCount == len(r.RequiredIngredients) {
+					break
+				}
 			}
 		}
 
-		missing := false
-		for _, c := range need {
-			if c > 0 {
-				missing = true
-				break
+		if usedCount == len(r.RequiredIngredients) {
+			m.TableStack.RemoveCard(r.ID)
+			for _, id := range usedIDs {
+				m.TableStack.RemoveCard(id)
 			}
+			if m.OnDishMade != nil {
+				m.OnDishMade(r)
+			}
+			return true
 		}
-		if missing {
-			continue
-		}
-
-		m.TableStack.RemoveReceipeAt(rIdx)
-		sort.Sort(sort.Reverse(sort.IntSlice(usedIngIdx)))
-		for _, idx := range usedIngIdx {
-			m.TableStack.RemoveIngredientAt(idx)
-		}
-		for _, cardID := range usedCardIDs {
-			m.TableStack.RemoveCardFromPlayerTracking(cardID)
-		}
-
-		if m.OnDishMade != nil {
-			m.OnDishMade(recipe)
-		}
-
-		return true
 	}
 
 	return false
