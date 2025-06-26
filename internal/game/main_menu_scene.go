@@ -7,9 +7,12 @@ import (
 	"github.com/thanhfphan/ebitengj2025/internal/ui"
 )
 
+var _ Scene = (*MainMenuScene)(nil)
+
 type MainMenuScene struct {
-	elements []ui.Element
-	bgImage  *ebiten.Image
+	elements  []ui.Element
+	bgImage   *ebiten.Image
+	uiManager *ui.Manager
 }
 
 func NewMainMenuScene() *MainMenuScene {
@@ -19,7 +22,8 @@ func NewMainMenuScene() *MainMenuScene {
 }
 
 func (s *MainMenuScene) Enter(g *Game) {
-	g.UIManager = ui.NewManager()
+	s.uiManager = ui.NewManager()
+	g.CurrentUIManager = s.uiManager
 
 	s.bgImage = g.AssetManager.GetImage("main_bg")
 
@@ -53,8 +57,7 @@ func (s *MainMenuScene) Enter(g *Game) {
 		b.PressedColor = colButtonPressed
 		b.TextColor = colButtonText
 		b.OnClick = onClick
-		b.SetTags(ui.TagMenu)
-		g.UIManager.AddElement(b)
+		s.uiManager.AddElement(b)
 		return b
 	}
 
@@ -64,26 +67,24 @@ func (s *MainMenuScene) Enter(g *Game) {
 	title.HoverColor = colTitleHover
 	title.HoverScale = 1.08
 	title.EnableHover = true
-	title.SetTags(ui.TagMenu)
-	g.UIManager.AddElement(title)
+	s.uiManager.AddElement(title)
 	s.elements = append(s.elements, title)
 
 	y := startY + 120
 	s.elements = append(s.elements,
-		makeBtn("New Game", y, func() { g.SetScene(NewPlayingScene()) }),
-		makeBtn("Settings", y+btnH+gapY, func() { g.SetScene(NewSettingsScene()) }),
+		makeBtn("New Game", y, func() {
+			g.PopScene()
+			g.PushScene(NewPlayingScene())
+		}),
+		makeBtn("Settings", y+btnH+gapY, func() {
+			g.PushScene(NewSettingsScene())
+		}),
 		makeBtn("Quit", y+2*(btnH+gapY), func() { g.State = GameStateQuit }),
 	)
 
-	g.UIManager.SetMask(ui.TagMenu)
 }
 
 func (s *MainMenuScene) Exit(g *Game) {
-	// Remove all menu elements
-	for _, element := range s.elements {
-		g.UIManager.RemoveElement(element)
-	}
-	s.elements = nil
 }
 
 func (s *MainMenuScene) Update(g *Game) {
@@ -104,4 +105,7 @@ func (s *MainMenuScene) Draw(screen *ebiten.Image, g *Game) {
 		screen.DrawImage(s.bgImage, op)
 	}
 
+}
+func (s *MainMenuScene) GetUIManager() *ui.Manager {
+	return s.uiManager
 }

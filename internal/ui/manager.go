@@ -7,26 +7,24 @@ import (
 )
 
 type Manager struct {
-	elements       []Element
-	topzindex      int
-	activeElement  Element
-	visibilityMask Tag
-	needSort       bool
+	elements      []Element
+	topzindex     int
+	activeElement Element
+	needSort      bool
 }
 
 func NewManager() *Manager {
 	return &Manager{
-		elements:       make([]Element, 0),
-		topzindex:      0,
-		activeElement:  nil,
-		visibilityMask: TagNone,
-		needSort:       false,
+		elements:      make([]Element, 0),
+		topzindex:     0,
+		activeElement: nil,
+		needSort:      false,
 	}
 }
 
 func (m *Manager) Update() {
 	for _, e := range m.elements {
-		if e.IsVisible() && (e.GetTags()&m.visibilityMask) != 0 {
+		if e.IsVisible() {
 			e.Update()
 		}
 	}
@@ -41,7 +39,7 @@ func (m *Manager) Draw(screen *ebiten.Image) {
 	}
 
 	for _, e := range m.elements {
-		if e.IsVisible() && (e.GetTags()&m.visibilityMask) != 0 {
+		if e.IsVisible() {
 			e.Draw(screen)
 		}
 	}
@@ -99,6 +97,9 @@ func (m *Manager) BringToFront(element Element) {
 	m.needSort = true
 }
 
-func (m *Manager) SetMask(mask Tag) {
-	m.visibilityMask = mask
+func (m *Manager) Clear() {
+	m.elements = make([]Element, 0)
+	m.topzindex = 0
+	m.activeElement = nil
+	m.needSort = false
 }

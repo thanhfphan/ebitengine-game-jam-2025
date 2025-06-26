@@ -22,7 +22,6 @@ type UIBotHand struct {
 	visible bool
 	zIndex  int
 	font    font.Face
-	tags    Tag
 }
 
 func NewUIBotHand(x, y, width, height int, font font.Face) *UIBotHand {
@@ -112,8 +111,6 @@ func (h *UIBotHand) SetVisible(v bool)           { h.visible = v }
 func (h *UIBotHand) GetZIndex() int              { return h.zIndex }
 func (h *UIBotHand) SetZIndex(z int)             { h.zIndex = z }
 func (h *UIBotHand) IsStatic() bool              { return true }
-func (h *UIBotHand) GetTags() Tag                { return h.tags }
-func (h *UIBotHand) SetTags(t Tag)               { h.tags = t }
 func (h *UIBotHand) SetDraggable(draggable bool) {}
 func (h *UIBotHand) SetPosition(x, y int) {
 	h.X = x

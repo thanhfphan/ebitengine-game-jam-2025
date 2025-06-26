@@ -20,7 +20,6 @@ type UIHand struct {
 	onCardSelected func(cardID string) // New callback for card selection
 	visible        bool
 	zIndex         int
-	tags           Tag
 }
 
 func NewUIHand(x, y, w, h int) *UIHand {
@@ -34,7 +33,6 @@ func NewUIHand(x, y, w, h int) *UIHand {
 		selectedCard: nil,
 		visible:      true,
 		zIndex:       0,
-		tags:         TagNone,
 	}
 }
 
@@ -198,7 +196,6 @@ func (h *UIHand) UpdateCards(cards []view.Card, cardImages map[string]*ebiten.Im
 			uiCard = NewUICard(card.ID, img, cardWidth, cardHeight)
 		}
 
-		uiCard.SetTags(h.tags)
 		uiCard.SetCardData(card, fonts["title"], fonts["subtitle"], fonts["body"])
 		uiCard.SetRequirementNames(ingredientNames)
 		uiCard.UpdateHightlightingHandRecipes(tableStack)
@@ -233,8 +230,6 @@ func (h *UIHand) SetVisible(v bool)           { h.visible = v }
 func (h *UIHand) GetZIndex() int              { return h.zIndex }
 func (h *UIHand) SetZIndex(z int)             { h.zIndex = z }
 func (h *UIHand) IsStatic() bool              { return false }
-func (h *UIHand) GetTags() Tag                { return h.tags }
-func (h *UIHand) SetTags(t Tag)               { h.tags = t }
 func (h *UIHand) SetDraggable(draggable bool) {}
 func (h *UIHand) SetPosition(x, y int) {
 	h.X = x

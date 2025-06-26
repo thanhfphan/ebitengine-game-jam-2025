@@ -23,7 +23,6 @@ type UILabel struct {
 
 	visible  bool
 	zIndex   int
-	tags     Tag
 	centered bool
 }
 
@@ -105,14 +104,6 @@ func (l *UILabel) ZIndex() int {
 
 func (l *UILabel) SetZIndex(z int) {
 	l.zIndex = z
-}
-
-func (l *UILabel) GetTags() Tag {
-	return l.tags
-}
-
-func (l *UILabel) SetTags(tags Tag) {
-	l.tags = tags
 }
 
 func (l *UILabel) Contains(x, y int) bool {

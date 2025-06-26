@@ -45,7 +45,6 @@ type UICard struct {
 	zIndex      int
 	hovering    bool
 	selected    bool
-	tags        Tag
 }
 
 func NewUICard(id string, img *ebiten.Image, w, h int) *UICard {
@@ -233,8 +232,6 @@ func (u *UICard) SetVisible(v bool)           { u.visible = v }
 func (u *UICard) GetZIndex() int              { return u.zIndex }
 func (u *UICard) SetZIndex(z int)             { u.zIndex = z }
 func (u *UICard) IsStatic() bool              { return false }
-func (u *UICard) GetTags() Tag                { return u.tags }
-func (u *UICard) SetTags(t Tag)               { u.tags = t }
 func (u *UICard) SetDraggable(draggable bool) { u.draggable = draggable }
 func (u *UICard) IsDraggable() bool           { return u.draggable }
 func (u *UICard) SetPosition(x, y int) {

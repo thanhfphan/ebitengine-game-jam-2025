@@ -9,9 +9,12 @@ import (
 	"github.com/thanhfphan/ebitengj2025/internal/ui"
 )
 
+var _ Scene = (*SettingsScene)(nil)
+
 type SettingsScene struct {
-	elements []ui.Element
-	bgImage  *ebiten.Image
+	elements  []ui.Element
+	bgImage   *ebiten.Image
+	uiManager *ui.Manager
 }
 
 func NewSettingsScene() *SettingsScene {
@@ -21,7 +24,8 @@ func NewSettingsScene() *SettingsScene {
 }
 
 func (s *SettingsScene) Enter(g *Game) {
-	g.UIManager = ui.NewManager()
+	s.uiManager = ui.NewManager()
+	g.CurrentUIManager = s.uiManager
 
 	s.bgImage = g.AssetManager.GetImage("main_bg")
 
@@ -29,7 +33,6 @@ func (s *SettingsScene) Enter(g *Game) {
 	titleFont := g.AssetManager.GetFont("nunito", 48)
 	smallFont := g.AssetManager.GetFont("nunito", 18)
 
-	// Màu sắc giống main menu
 	var (
 		colButtonBg      = color.RGBA{0xF3, 0xE2, 0xC3, 0xFF}
 		colButtonHover   = color.RGBA{0xFF, 0xE0, 0x7A, 0xFF}
@@ -50,8 +53,7 @@ func (s *SettingsScene) Enter(g *Game) {
 	title.HoverColor = colTitleHover
 	title.HoverScale = 1.08
 	title.EnableHover = true
-	title.SetTags(ui.TagSettings)
-	g.UIManager.AddElement(title)
+	s.uiManager.AddElement(title)
 	s.elements = append(s.elements, title)
 
 	y := startY + 100
@@ -59,34 +61,30 @@ func (s *SettingsScene) Enter(g *Game) {
 	// Music volume label + slider
 	musicLabel := ui.NewUILabel(cx, y, "Music Volume", defaultFont)
 	musicLabel.AlignCenter()
-	musicLabel.SetTags(ui.TagSettings)
-	g.UIManager.AddElement(musicLabel)
+	s.uiManager.AddElement(musicLabel)
 	s.elements = append(s.elements, musicLabel)
 
 	y += spacing
 	musicSlider := ui.NewUISlider(cx, y, 400, 30, g.AssetManager.GetMusicVolume())
-	musicSlider.SetTags(ui.TagSettings)
 	musicSlider.OnChange = func(value float64) {
 		g.AssetManager.SetMusicVolume(value)
 	}
-	g.UIManager.AddElement(musicSlider)
+	s.uiManager.AddElement(musicSlider)
 	s.elements = append(s.elements, musicSlider)
 
 	// Sound Effects volume
 	y += spacing
 	soundLabel := ui.NewUILabel(cx, y, "Sound Effects Volume", defaultFont)
 	soundLabel.AlignCenter()
-	soundLabel.SetTags(ui.TagSettings)
-	g.UIManager.AddElement(soundLabel)
+	s.uiManager.AddElement(soundLabel)
 	s.elements = append(s.elements, soundLabel)
 
 	y += spacing
 	soundSlider := ui.NewUISlider(cx, y, 400, 30, g.AssetManager.GetMasterVolume())
-	soundSlider.SetTags(ui.TagSettings)
 	soundSlider.OnChange = func(value float64) {
 		g.AssetManager.SetMasterVolume(value)
 	}
-	g.UIManager.AddElement(soundSlider)
+	s.uiManager.AddElement(soundSlider)
 	s.elements = append(s.elements, soundSlider)
 
 	// Test sound button
@@ -101,8 +99,7 @@ func (s *SettingsScene) Enter(g *Game) {
 			fmt.Println("Error playing sound:", err)
 		}
 	}
-	testBtn.SetTags(ui.TagSettings)
-	g.UIManager.AddElement(testBtn)
+	s.uiManager.AddElement(testBtn)
 	s.elements = append(s.elements, testBtn)
 
 	// Back button
@@ -113,26 +110,19 @@ func (s *SettingsScene) Enter(g *Game) {
 	backBtn.PressedColor = colButtonPressed
 	backBtn.TextColor = colButtonText
 	backBtn.OnClick = func() {
-		g.SetScene(NewMainMenuScene())
+		g.PopScene()
 	}
-	backBtn.SetTags(ui.TagSettings)
-	g.UIManager.AddElement(backBtn)
+	s.uiManager.AddElement(backBtn)
 	s.elements = append(s.elements, backBtn)
 
-	// UI mask
-	g.UIManager.SetMask(ui.TagSettings)
 }
 
 func (s *SettingsScene) Exit(g *Game) {
-	for _, element := range s.elements {
-		g.UIManager.RemoveElement(element)
-	}
-	s.elements = nil
 }
 
 func (s *SettingsScene) Update(g *Game) {
 	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
-		g.SetScene(NewMainMenuScene())
+		g.PopScene() // Pop scene on Escape key
 	}
 }
 
@@ -150,4 +140,8 @@ func (s *SettingsScene) Draw(screen *ebiten.Image, g *Game) {
 		screen.DrawImage(s.bgImage, op)
 	}
 
+}
+
+func (s *SettingsScene) GetUIManager() *ui.Manager {
+	return s.uiManager
 }

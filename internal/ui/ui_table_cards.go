@@ -22,7 +22,6 @@ type UITableCards struct {
 
 	visible bool
 	zIndex  int
-	tags    Tag
 }
 
 func NewUITableCards(tableX, tableY, tableRadius int) *UITableCards {
@@ -176,7 +175,6 @@ func (u *UITableCards) UpdateFromTableStack(tableStack view.TableStack, cardImag
 			}
 
 			card := NewUICard(recipe.ID, img, 80, 120)
-			card.SetTags(u.tags)
 			card.SetDraggable(true)
 			card.SetCardData(recipe, fonts["title"], fonts["subtitle"], fonts["body"])
 			card.SetRequirementNames(ingredientNames)
@@ -210,7 +208,6 @@ func (u *UITableCards) UpdateFromTableStack(tableStack view.TableStack, cardImag
 			}
 
 			card := NewUICard(ingredient.ID, img, 80, 120)
-			card.SetTags(u.tags)
 			card.SetDraggable(true)
 			card.SetCardData(ingredient, fonts["title"], fonts["subtitle"], fonts["body"])
 
@@ -252,8 +249,6 @@ func (u *UITableCards) SetVisible(v bool)           { u.visible = v }
 func (u *UITableCards) GetZIndex() int              { return u.zIndex }
 func (u *UITableCards) SetZIndex(z int)             { u.zIndex = z }
 func (u *UITableCards) IsStatic() bool              { return true }
-func (u *UITableCards) GetTags() Tag                { return u.tags }
-func (u *UITableCards) SetTags(tag Tag)             { u.tags = tag }
 func (u *UITableCards) SetDraggable(draggable bool) {}
 func (u *UITableCards) SetPosition(x, y int) {
 	u.X = x

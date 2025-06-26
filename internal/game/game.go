@@ -20,8 +20,9 @@ import (
 )
 
 var (
-	_ ebiten.Game = (*Game)(nil)
-	_ ai.GameLike = (*Game)(nil)
+	_ ebiten.Game  = (*Game)(nil)
+	_ ai.GameLike  = (*Game)(nil)
+	_ SceneManager = (*Game)(nil)
 )
 
 var (
@@ -43,36 +44,35 @@ type Game struct {
 	Player    *entity.Player
 	DebugMode bool
 
-	AssetManager *am.AssetManager
-	Renderer     *renderer.Renderer
-	World        *world.World
-	UIManager    *ui.Manager
-	AIManager    *ai.Manager
-	CardManager  *card.Manager
-	TurnManager  *rules.TurnManager
+	AssetManager     *am.AssetManager
+	Renderer         *renderer.Renderer
+	World            *world.World
+	CurrentUIManager *ui.Manager
+	AIManager        *ai.Manager
+	CardManager      *card.Manager
+	TurnManager      *rules.TurnManager
 
-	currentScene Scene
+	sceneStack []Scene // Scene stack for managing scenes
 }
 
 func New() (*Game, error) {
 	assetManager := am.NewAssetManager()
 	renderer := renderer.New(assetManager)
 	world := world.New()
-	uiManager := ui.NewManager()
 	aiManager := ai.NewManager()
 	cardManager := card.NewManager()
 	turnManager := rules.NewTurnManager()
 
 	g := &Game{
-		State:        GameStateMainMenu,
+		State:        GameStateNormal,
 		Players:      []*entity.Player{},
 		AssetManager: assetManager,
 		Renderer:     renderer,
 		World:        world,
-		UIManager:    uiManager,
 		AIManager:    aiManager,
 		CardManager:  cardManager,
 		TurnManager:  turnManager,
+		sceneStack:   []Scene{},
 	}
 
 	cardManager.OnDishMade = func(recipe *entity.Card) {
@@ -114,7 +114,7 @@ func New() (*Game, error) {
 		fmt.Println("Error loading background image:", err)
 	}
 
-	g.SetScene(NewMainMenuScene())
+	g.PushScene(NewMainMenuScene())
 
 	return g, nil
 }
@@ -140,32 +140,26 @@ func (g *Game) setupSoloMatch(botCount int) []*ui.UIBotHand {
 
 		botHand := ui.NewUIBotHand(0, 0, CardWidth, CardHeight, defaultFont) // Position will be set later
 		botHands = append(botHands, botHand)
-		g.UIManager.AddElement(botHand)
+		g.CurrentUIManager.AddElement(botHand)
 	}
 
 	g.CardManager.DealHands(g.Players)
 	return botHands
 }
 
-func (g *Game) SetScene(scene Scene) {
-	if g.currentScene != nil {
-		g.currentScene.Exit(g)
-	}
-	g.currentScene = scene
-	if g.currentScene != nil {
-		g.currentScene.Enter(g)
-	}
-}
-
 // Update implements ebiten.Game.
 func (g *Game) Update() error {
 	g.HandleInput()
 
-	if g.currentScene != nil {
-		g.currentScene.Update(g)
+	currentScene := g.CurrentScene()
+	if currentScene != nil {
+		currentScene.Update(g)
 	}
 
-	g.UIManager.Update()
+	if g.CurrentUIManager != nil {
+		g.CurrentUIManager.Update()
+	}
+
 	g.Renderer.Update()
 	g.AssetManager.Update()
 
@@ -180,11 +174,14 @@ func (g *Game) Update() error {
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(g.Renderer.BackgroundColor())
 
-	if g.currentScene != nil {
-		g.currentScene.Draw(screen, g)
+	currentScene := g.CurrentScene()
+	if currentScene != nil {
+		currentScene.Draw(screen, g)
 	}
 
-	g.UIManager.Draw(screen)
+	if g.CurrentUIManager != nil {
+		g.CurrentUIManager.Draw(screen)
+	}
 }
 
 // Layout implements ebiten.Game.
@@ -199,12 +196,16 @@ func (g *Game) HandleInput() {
 
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		mx, my := ebiten.CursorPosition()
-		g.UIManager.HandleMouseDown(mx, my)
+		if g.CurrentUIManager != nil {
+			g.CurrentUIManager.HandleMouseDown(mx, my)
+		}
 	}
 
 	if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) {
 		mx, my := ebiten.CursorPosition()
-		g.UIManager.HandleMouseUp(mx, my)
+		if g.CurrentUIManager != nil {
+			g.CurrentUIManager.HandleMouseUp(mx, my)
+		}
 	}
 }
 
@@ -356,4 +357,47 @@ func (g *Game) GetPlayer(id string) *entity.Player {
 		}
 	}
 	return nil
+}
+
+// PushScene adds a new scene to the top of the stack
+func (g *Game) PushScene(scene Scene) {
+	g.sceneStack = append(g.sceneStack, scene)
+	scene.Enter(g)
+}
+
+// PopScene removes the current scene from the top of the stack
+func (g *Game) PopScene() {
+	if len(g.sceneStack) == 0 {
+		return
+	}
+
+	currentScene := g.sceneStack[len(g.sceneStack)-1]
+	currentScene.Exit(g)
+
+	g.sceneStack = g.sceneStack[:len(g.sceneStack)-1]
+
+	if len(g.sceneStack) > 0 {
+		g.sceneStack[len(g.sceneStack)-1].Enter(g)
+	}
+}
+
+// ReplaceScene replaces the current scene with a new one
+func (g *Game) ReplaceScene(scene Scene) {
+	if len(g.sceneStack) > 0 {
+		currentScene := g.sceneStack[len(g.sceneStack)-1]
+		currentScene.Exit(g)
+
+		g.sceneStack[len(g.sceneStack)-1] = scene
+	} else {
+		g.sceneStack = append(g.sceneStack, scene)
+	}
+
+	scene.Enter(g)
+}
+
+func (g *Game) CurrentScene() Scene {
+	if len(g.sceneStack) == 0 {
+		return nil
+	}
+	return g.sceneStack[len(g.sceneStack)-1]
 }

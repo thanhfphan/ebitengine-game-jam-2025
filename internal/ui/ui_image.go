@@ -11,7 +11,6 @@ type UIImage struct {
 
 	visible bool
 	zindex  int
-	tags    Tag
 }
 
 func NewUIImage(x, y int, image *ebiten.Image) *UIImage {
@@ -54,8 +53,6 @@ func (u *UIImage) GetZIndex() int              { return u.zindex }
 func (u *UIImage) IsVisible() bool             { return u.visible }
 func (u *UIImage) SetVisible(v bool)           { u.visible = v }
 func (u *UIImage) SetZIndex(idx int)           { u.zindex = idx }
-func (u *UIImage) GetTags() Tag                { return u.tags }
-func (u *UIImage) SetTags(t Tag)               { u.tags = t }
 func (u *UIImage) SetDraggable(draggable bool) {}
 func (u *UIImage) SetPosition(x, y int) {
 	u.X = x

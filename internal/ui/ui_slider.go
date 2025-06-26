@@ -18,7 +18,6 @@ type UISlider struct {
 	isDragging bool
 	visible    bool
 	zIndex     int
-	tags       Tag
 }
 
 func NewUISlider(x, y, width, height int, initialValue float64) *UISlider {
@@ -142,14 +141,6 @@ func (s *UISlider) ZIndex() int {
 
 func (s *UISlider) SetZIndex(z int) {
 	s.zIndex = z
-}
-
-func (s *UISlider) GetTags() Tag {
-	return s.tags
-}
-
-func (s *UISlider) SetTags(tags Tag) {
-	s.tags = tags
 }
 
 // Additional methods to implement the Element interface

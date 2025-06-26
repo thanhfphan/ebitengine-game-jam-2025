@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"image/color"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -12,38 +13,52 @@ import (
 	"golang.org/x/image/font"
 )
 
+var _ Scene = (*PlayingScene)(nil)
+
 type PlayingScene struct {
 	elements   []ui.Element
 	playerHand *ui.UIHand
 	botHands   []*ui.UIBotHand
 	tableCards *ui.UITableCards
+	isPaused   bool
+	pauseMenu  *PauseMenu
+	uiManager  *ui.Manager
+}
+
+type PauseMenu struct {
+	elements []ui.Element
+	overlay  *ebiten.Image
 }
 
 func NewPlayingScene() *PlayingScene {
 	return &PlayingScene{
-		elements: []ui.Element{},
-		botHands: []*ui.UIBotHand{},
+		elements:  []ui.Element{},
+		botHands:  []*ui.UIBotHand{},
+		isPaused:  false,
+		pauseMenu: nil,
+		uiManager: ui.NewManager(),
 	}
+
 }
 
 func (s *PlayingScene) Enter(g *Game) {
-	g.UIManager = ui.NewManager()
+	g.CurrentUIManager = s.uiManager
+	if s.isPaused {
+		return
+	}
 
 	defaultFont := g.AssetManager.GetFont("nunito", 24)
-
 	centerX, centerY := ScreenW/2, ScreenH/2
 
 	// Setup table cards UI
 	s.tableCards = ui.NewUITableCards(centerX, centerY, TableRadius)
-	s.tableCards.SetTags(ui.TagInGame)
-	g.UIManager.AddElement(s.tableCards)
+	s.uiManager.AddElement(s.tableCards)
 	s.elements = append(s.elements, s.tableCards)
 
 	// Setup player hand UI
 	handWidth := 800
 	handHeight := 160
 	s.playerHand = ui.NewUIHand(centerX-handWidth/2, 600, handWidth, handHeight)
-	s.playerHand.SetTags(ui.TagInGame)
 	s.playerHand.SetOnPlayCard(func(cardID string) {
 		if g.Player != nil {
 			g.PlayCard(g.Player.ID, cardID)
@@ -58,37 +73,34 @@ func (s *PlayingScene) Enter(g *Game) {
 		}
 	})
 
-	g.UIManager.AddElement(s.playerHand)
+	s.uiManager.AddElement(s.playerHand)
 	s.elements = append(s.elements, s.playerHand)
 
 	// Setup buttons
 	btnX := centerX + 300
 	passBtn := ui.NewUIButton(btnX, 600, 100, 40, "Pass", defaultFont)
-	passBtn.SetTags(ui.TagInGame)
 	passBtn.OnClick = func() {
 		if g.Player != nil {
 			g.Pass(g.Player.ID)
 		}
 	}
-	g.UIManager.AddElement(passBtn)
+	s.uiManager.AddElement(passBtn)
 	s.elements = append(s.elements, passBtn)
 
 	playBtn := ui.NewUIButton(btnX, 650, 100, 40, "Play", defaultFont)
-	playBtn.SetTags(ui.TagInGame)
 	playBtn.OnClick = func() {
 		s.playerHand.PlaySelected()
 	}
-	g.UIManager.AddElement(playBtn)
+	s.uiManager.AddElement(playBtn)
 	s.elements = append(s.elements, playBtn)
 
-	// Setup back to menu button
-	menuBtn := ui.NewUIButton(100, 50, 120, 40, "Menu", defaultFont)
-	menuBtn.SetTags(ui.TagInGame)
-	menuBtn.OnClick = func() {
-		g.SetScene(NewMainMenuScene())
-	}
-	g.UIManager.AddElement(menuBtn)
-	s.elements = append(s.elements, menuBtn)
+	s.initPauseMenu(g)
+
+	s.setupGame(g)
+}
+
+func (s *PlayingScene) setupGame(g *Game) {
+	centerX, centerY := ScreenW/2, ScreenH/2
 
 	// Setup game
 	s.botHands = g.setupSoloMatch(3)
@@ -105,27 +117,30 @@ func (s *PlayingScene) Enter(g *Game) {
 		x := int(float64(centerX) + float64(TableRadius)*math.Cos(angle))
 		y := int(float64(centerY) - float64(TableRadius)*math.Sin(angle))
 		hand.SetPosition(x-hand.Width/2, y-hand.Height/2)
-		hand.SetTags(ui.TagInGame)
 	}
-
-	g.UIManager.SetMask(ui.TagInGame)
 }
 
 func (s *PlayingScene) Exit(g *Game) {
-	for _, element := range s.elements {
-		g.UIManager.RemoveElement(element)
-	}
-	s.elements = nil
-	s.playerHand = nil
-	s.botHands = nil
-	s.tableCards = nil
 }
 
 func (s *PlayingScene) Update(g *Game) {
+	// s.syncPauseState(g)
+
+	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
+		s.togglePause(g)
+		return
+	}
+
+	// Don't update game state if paused
+	if s.isPaused {
+		return
+	}
+
 	// Check for game over
 	if winnerOrder := g.TurnManager.FinishedOrder(); len(winnerOrder) == len(g.Players) {
 		fmt.Println("Game finished. Winner order:", winnerOrder)
-		g.SetScene(NewMainMenuScene())
+		g.PopScene()
+		g.PushScene(NewMainMenuScene())
 		return
 	}
 
@@ -133,11 +148,6 @@ func (s *PlayingScene) Update(g *Game) {
 	g.UpdateHands(s.playerHand, s.botHands)
 
 	s.UpdateTableCards(g)
-
-	// Check for ESC key to return to main menu
-	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
-		g.SetScene(NewMainMenuScene())
-	}
 }
 
 func (s *PlayingScene) UpdateTableCards(g *Game) {
@@ -188,10 +198,20 @@ func (s *PlayingScene) UpdateTableCards(g *Game) {
 func (s *PlayingScene) Draw(screen *ebiten.Image, g *Game) {
 	g.Renderer.DrawWorld(screen, g.World)
 
+	// Draw pause overlay if paused
+	if s.isPaused && s.pauseMenu != nil && s.pauseMenu.overlay != nil {
+		op := &ebiten.DrawImageOptions{}
+		screen.DrawImage(s.pauseMenu.overlay, op)
+	}
+
 	if g.DebugMode {
 		mx, my := ebiten.CursorPosition()
 		g.Renderer.DrawDebug(screen, fmt.Sprintf("Cursor: %d, %d", mx, my))
 	}
+}
+
+func (s *PlayingScene) GetUIManager() *ui.Manager {
+	return s.uiManager
 }
 
 // Add a new function to highlight matching recipes
@@ -209,4 +229,89 @@ func (s *PlayingScene) highlightMatchingRecipes(g *Game, cardID string) {
 	s.tableCards.ResetCanMakeDish()
 	viewTableStack := ToViewTableStack(g.CardManager.TableStack)
 	s.tableCards.UpdateCanMakeDish(selectedCard.IngredientID, viewTableStack)
+}
+
+// Initialize the pause menu
+func (s *PlayingScene) initPauseMenu(g *Game) {
+	s.pauseMenu = &PauseMenu{
+		elements: []ui.Element{},
+	}
+
+	s.pauseMenu.overlay = ebiten.NewImage(ScreenW, ScreenH)
+	s.pauseMenu.overlay.Fill(color.RGBA{0, 0, 0, 180})
+
+	// Setup pause menu buttons
+	titleFont := g.AssetManager.GetFont("nunito", 48)
+	defaultFont := g.AssetManager.GetFont("nunito", 24)
+
+	centerX := ScreenW / 2
+	startY := ScreenH / 3
+	btnWidth := 300
+	btnHeight := 50
+	btnSpacing := 70
+
+	// Pause title
+	pauseTitle := ui.NewUILabel(centerX, startY-80, "PAUSED", titleFont)
+	pauseTitle.AlignCenter()
+	pauseTitle.TextColor = color.RGBA{0xFF, 0xE7, 0x4D, 0xFF}
+	s.uiManager.AddElement(pauseTitle)
+	s.pauseMenu.elements = append(s.pauseMenu.elements, pauseTitle)
+
+	// Button colors
+	colButtonBg := color.RGBA{0xF3, 0xE2, 0xC3, 0xFF}
+	colButtonHover := color.RGBA{0xFF, 0xE0, 0x7A, 0xFF}
+	colButtonPressed := color.RGBA{0xD9, 0xC3, 0x90, 0xFF}
+	colButtonText := color.RGBA{0x36, 0x55, 0x34, 0xFF}
+
+	// Resume button
+	resumeBtn := ui.NewUIButton(centerX-btnWidth/2, startY, btnWidth, btnHeight, "Resume", defaultFont)
+	resumeBtn.BackgroundColor = colButtonBg
+	resumeBtn.HoverColor = colButtonHover
+	resumeBtn.PressedColor = colButtonPressed
+	resumeBtn.TextColor = colButtonText
+	resumeBtn.OnClick = func() {
+		s.togglePause(g)
+	}
+	s.uiManager.AddElement(resumeBtn)
+	s.pauseMenu.elements = append(s.pauseMenu.elements, resumeBtn)
+
+	// Settings button
+	settingsBtn := ui.NewUIButton(centerX-btnWidth/2, startY+btnSpacing, btnWidth, btnHeight, "Settings", defaultFont)
+	settingsBtn.BackgroundColor = colButtonBg
+	settingsBtn.HoverColor = colButtonHover
+	settingsBtn.PressedColor = colButtonPressed
+	settingsBtn.TextColor = colButtonText
+	settingsBtn.OnClick = func() {
+		g.PushScene(NewSettingsScene())
+	}
+	s.uiManager.AddElement(settingsBtn)
+	s.pauseMenu.elements = append(s.pauseMenu.elements, settingsBtn)
+
+	// Main menu button
+	menuBtn := ui.NewUIButton(centerX-btnWidth/2, startY+2*btnSpacing, btnWidth, btnHeight, "Return to Main Menu", defaultFont)
+	menuBtn.BackgroundColor = colButtonBg
+	menuBtn.HoverColor = colButtonHover
+	menuBtn.PressedColor = colButtonPressed
+	menuBtn.TextColor = colButtonText
+	menuBtn.OnClick = func() {
+		g.PopScene()
+		g.PushScene(NewMainMenuScene())
+	}
+	s.uiManager.AddElement(menuBtn)
+	s.pauseMenu.elements = append(s.pauseMenu.elements, menuBtn)
+
+	// Hide pause menu initially
+	for _, element := range s.pauseMenu.elements {
+		element.SetVisible(false)
+	}
+}
+
+// Toggle pause state
+func (s *PlayingScene) togglePause(g *Game) {
+	s.isPaused = !s.isPaused
+
+	// Show/hide pause menu elements
+	for _, element := range s.pauseMenu.elements {
+		element.SetVisible(s.isPaused)
+	}
 }
