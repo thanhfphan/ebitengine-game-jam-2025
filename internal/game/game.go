@@ -113,6 +113,9 @@ func New() (*Game, error) {
 	if err := g.AssetManager.LoadImage("main_bg", "assets/images/backgrounds/main_bg.png"); err != nil {
 		fmt.Println("Error loading background image:", err)
 	}
+	if err := g.AssetManager.LoadImage("play_bg", "assets/images/backgrounds/tet.png"); err != nil {
+		fmt.Println("Error loading background image:", err)
+	}
 
 	g.PushScene(NewMainMenuScene())
 

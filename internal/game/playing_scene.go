@@ -23,6 +23,7 @@ type PlayingScene struct {
 	isPaused   bool
 	pauseMenu  *PauseMenu
 	uiManager  *ui.Manager
+	bgImage    *ebiten.Image
 }
 
 type PauseMenu struct {
@@ -43,9 +44,11 @@ func NewPlayingScene() *PlayingScene {
 
 func (s *PlayingScene) Enter(g *Game) {
 	g.CurrentUIManager = s.uiManager
-	if s.isPaused {
+	if s.isPaused { // FIXME: might want to add resume method instead??
 		return
 	}
+
+	s.bgImage = g.AssetManager.GetImage("play_bg")
 
 	defaultFont := g.AssetManager.GetFont("nunito", 24)
 	centerX, centerY := ScreenW/2, ScreenH/2
@@ -197,6 +200,19 @@ func (s *PlayingScene) UpdateTableCards(g *Game) {
 
 func (s *PlayingScene) Draw(screen *ebiten.Image, g *Game) {
 	g.Renderer.DrawWorld(screen, g.World)
+
+	if s.bgImage != nil {
+		op := &ebiten.DrawImageOptions{}
+
+		sw, sh := screen.Bounds().Dx(), screen.Bounds().Dy()
+		bw, bh := s.bgImage.Bounds().Dx(), s.bgImage.Bounds().Dy()
+
+		sx := float64(sw) / float64(bw)
+		sy := float64(sh) / float64(bh)
+
+		op.GeoM.Scale(sx, sy)
+		screen.DrawImage(s.bgImage, op)
+	}
 
 	// Draw pause overlay if paused
 	if s.isPaused && s.pauseMenu != nil && s.pauseMenu.overlay != nil {
