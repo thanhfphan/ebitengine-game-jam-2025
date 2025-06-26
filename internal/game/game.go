@@ -30,6 +30,13 @@ var (
 	CardWidth, CardHeight = 80, 120
 )
 
+const (
+	MusicBackground = "music_background"
+	SoundSelect     = "sound_select"
+	SoundRecipeMade = "sound_recipe_made"
+	SoundPlay       = "sound_play"
+)
+
 type Game struct {
 	State     GameState
 	Players   []*entity.Player
@@ -70,6 +77,10 @@ func New() (*Game, error) {
 
 	cardManager.OnDishMade = func(recipe *entity.Card) {
 		fmt.Println("Recipe made:", recipe.Name)
+		err := g.AssetManager.PlaySound(SoundRecipeMade)
+		if err != nil {
+			fmt.Println("Error playing sound:", err)
+		}
 	}
 	cardManager.OnPlayCard = func(player *entity.Player, card *entity.Card) {
 		fmt.Println("Card played:", card.Name, "by", player.Name, "(", player.ID, ")")
@@ -80,9 +91,22 @@ func New() (*Game, error) {
 	g.AssetManager.LoadFont("nunito", fonts.NunitoRegular_ttf, 48)
 	g.AssetManager.LoadFont("nunito", fonts.NunitoRegular_ttf, 18)
 
-	// g.AssetManager.LoadSound("click", "assets/sounds/click.wav")
+	if err := g.AssetManager.LoadMusic(MusicBackground, "assets/sounds/vietnam-bamboo-flute.ogg"); err != nil {
+		return nil, err
+	}
+	assetManager.SetMusicVolume(0.2)
+	if err := g.AssetManager.LoadSound(SoundSelect, "assets/sounds/card-swipe.wav"); err != nil {
+		return nil, err
+	}
+	if err := g.AssetManager.LoadSound(SoundPlay, "assets/sounds/poppop.wav"); err != nil {
+		return nil, err
+	}
+	if err := g.AssetManager.LoadSound(SoundRecipeMade, "assets/sounds/ding-effect.wav"); err != nil {
+		return nil, err
+	}
 
-	// Set initial scene to main menu
+	g.AssetManager.PlayMusic(MusicBackground)
+
 	g.SetScene(NewMainMenuScene())
 
 	return g, nil
@@ -284,6 +308,10 @@ func (g *Game) PlayCard(playerID string, cardID string) error {
 	if err != nil {
 		fmt.Println("Error playing card:", err)
 		return err
+	}
+
+	if err := g.AssetManager.PlaySound(SoundPlay); err != nil {
+		fmt.Println("Error playing sound:", err)
 	}
 
 	g.TurnManager.MarkAllUnpassed()

@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/hajimehoshi/ebiten/v2/audio/vorbis"
@@ -62,17 +64,14 @@ func (s *Sound) Play() error {
 // LoadSound loads a sound effect from a file
 func (am *AssetManager) LoadSound(name, filePath string) error {
 	var format string
-	if len(filePath) > 4 {
-		ext := filePath[len(filePath)-3:]
-		if ext == "wav" {
-			format = "wav"
-		} else if ext == "ogg" {
-			format = "ogg"
-		} else {
-			return fmt.Errorf("unsupported audio format: %s", ext)
-		}
-	} else {
-		return fmt.Errorf("invalid file path: %s", filePath)
+	ext := strings.ToLower(filepath.Ext(filePath)) // ".wav" or ".ogg"
+	switch ext {
+	case ".wav":
+		format = "wav"
+	case ".ogg":
+		format = "ogg"
+	default:
+		return fmt.Errorf("unsupported audio format: %s", ext)
 	}
 
 	data, err := os.ReadFile(filePath)

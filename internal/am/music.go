@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/hajimehoshi/ebiten/v2/audio"
@@ -139,19 +141,15 @@ func (m *Music) createPlayer() error {
 
 // LoadMusic loads a music track from a file
 func (am *AssetManager) LoadMusic(name, filePath string) error {
-	// Determine format from file extension
 	var format string
-	if len(filePath) > 4 {
-		ext := filePath[len(filePath)-3:]
-		if ext == "wav" {
-			format = "wav"
-		} else if ext == "ogg" {
-			format = "ogg"
-		} else {
-			return fmt.Errorf("unsupported audio format: %s", ext)
-		}
-	} else {
-		return fmt.Errorf("invalid file path: %s", filePath)
+	ext := strings.ToLower(filepath.Ext(filePath)) // ".wav" or ".ogg"
+	switch ext {
+	case ".wav":
+		format = "wav"
+	case ".ogg":
+		format = "ogg"
+	default:
+		return fmt.Errorf("unsupported audio format: %s", ext)
 	}
 
 	data, err := os.ReadFile(filePath)

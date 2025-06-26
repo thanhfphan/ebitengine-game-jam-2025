@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -92,7 +93,9 @@ func (s *SettingsScene) Enter(g *Game) {
 	testBtn.PressedColor = colButtonPressed
 	testBtn.TextColor = colButtonText
 	testBtn.OnClick = func() {
-		g.AssetManager.PlaySound("click")
+		if err := g.AssetManager.PlaySound(SoundPlay); err != nil {
+			fmt.Println("Error playing sound:", err)
+		}
 	}
 	testBtn.SetTags(ui.TagSettings)
 	g.UIManager.AddElement(testBtn)

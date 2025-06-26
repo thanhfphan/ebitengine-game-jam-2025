@@ -53,6 +53,9 @@ func (s *PlayingScene) Enter(g *Game) {
 	// Add card selection handler to highlight matching recipes
 	s.playerHand.SetOnCardSelected(func(cardID string) {
 		s.highlightMatchingRecipes(g, cardID)
+		if err := g.AssetManager.PlaySound(SoundSelect); err != nil {
+			fmt.Println("Error playing sound:", err)
+		}
 	})
 
 	g.UIManager.AddElement(s.playerHand)
