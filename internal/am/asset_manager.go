@@ -3,6 +3,7 @@ package am
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"golang.org/x/image/font"
 )
 
@@ -18,6 +19,9 @@ type AssetManager struct {
 	// Volume settings
 	masterVolume float64
 	musicVolume  float64
+
+	// Images
+	images map[string]*ebiten.Image
 }
 
 func NewAssetManager() *AssetManager {
@@ -32,6 +36,7 @@ func NewAssetManager() *AssetManager {
 		music:        make(map[string]*Music),
 		masterVolume: 1.0, // Default to full volume
 		musicVolume:  1.0, // Default to full volume
+		images:       make(map[string]*ebiten.Image),
 	}
 }
 
@@ -45,4 +50,17 @@ func (am *AssetManager) GetCardBackImage() *ebiten.Image {
 	// TODO: Implement actual card back image loading
 	img := ebiten.NewImage(80, 120)
 	return img
+}
+
+func (am *AssetManager) LoadImage(id string, path string) error {
+	img, _, err := ebitenutil.NewImageFromFile(path)
+	if err != nil {
+		return err
+	}
+	am.images[id] = img
+	return nil
+}
+
+func (am *AssetManager) GetImage(id string) *ebiten.Image {
+	return am.images[id]
 }

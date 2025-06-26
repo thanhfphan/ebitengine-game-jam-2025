@@ -86,11 +86,13 @@ func New() (*Game, error) {
 		fmt.Println("Card played:", card.Name, "by", player.Name, "(", player.ID, ")")
 	}
 
+	// Fonts
 	g.AssetManager.LoadFont("nunito", fonts.NunitoRegular_ttf, 24)
 	g.AssetManager.LoadFont("nunito", fonts.NunitoRegular_ttf, 32)
 	g.AssetManager.LoadFont("nunito", fonts.NunitoRegular_ttf, 48)
 	g.AssetManager.LoadFont("nunito", fonts.NunitoRegular_ttf, 18)
 
+	// Music and sounds
 	if err := g.AssetManager.LoadMusic(MusicBackground, "assets/sounds/vietnam-bamboo-flute.ogg"); err != nil {
 		return nil, err
 	}
@@ -106,6 +108,11 @@ func New() (*Game, error) {
 	}
 
 	g.AssetManager.PlayMusic(MusicBackground)
+
+	// Images
+	if err := g.AssetManager.LoadImage("main_bg", "assets/images/backgrounds/main_bg.png"); err != nil {
+		fmt.Println("Error loading background image:", err)
+	}
 
 	g.SetScene(NewMainMenuScene())
 

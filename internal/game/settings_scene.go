@@ -11,6 +11,7 @@ import (
 
 type SettingsScene struct {
 	elements []ui.Element
+	bgImage  *ebiten.Image
 }
 
 func NewSettingsScene() *SettingsScene {
@@ -21,6 +22,9 @@ func NewSettingsScene() *SettingsScene {
 
 func (s *SettingsScene) Enter(g *Game) {
 	g.UIManager = ui.NewManager()
+
+	s.bgImage = g.AssetManager.GetImage("main_bg")
+
 	defaultFont := g.AssetManager.GetFont("nunito", 24)
 	titleFont := g.AssetManager.GetFont("nunito", 48)
 	smallFont := g.AssetManager.GetFont("nunito", 18)
@@ -133,5 +137,17 @@ func (s *SettingsScene) Update(g *Game) {
 }
 
 func (s *SettingsScene) Draw(screen *ebiten.Image, g *Game) {
-	// UI Manager draws
+	if s.bgImage != nil {
+		op := &ebiten.DrawImageOptions{}
+
+		sw, sh := screen.Bounds().Dx(), screen.Bounds().Dy()
+		bw, bh := s.bgImage.Bounds().Dx(), s.bgImage.Bounds().Dy()
+
+		sx := float64(sw) / float64(bw)
+		sy := float64(sh) / float64(bh)
+
+		op.GeoM.Scale(sx, sy)
+		screen.DrawImage(s.bgImage, op)
+	}
+
 }
