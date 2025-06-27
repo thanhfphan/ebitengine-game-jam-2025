@@ -14,7 +14,6 @@ type UIHand struct {
 	X, Y           int
 	Width, Height  int
 	Cards          []*UICard
-	Spacing        int
 	selectedCard   *UICard
 	onPlayCard     func(cardID string)
 	onCardSelected func(cardID string) // New callback for card selection
@@ -29,7 +28,6 @@ func NewUIHand(x, y, w, h int) *UIHand {
 		Width:        w,
 		Height:       h,
 		Cards:        []*UICard{},
-		Spacing:      20,
 		selectedCard: nil,
 		visible:      true,
 		zIndex:       0,
@@ -55,7 +53,7 @@ func (h *UIHand) Draw(screen *ebiten.Image) {
 		return
 	}
 
-	for i := len(h.Cards) - 1; i >= 0; i-- {
+	for i := 0; i < len(h.Cards); i++ {
 		h.Cards[i].Draw(screen)
 	}
 }
@@ -66,7 +64,7 @@ func (h *UIHand) HandleMouseDown(x, y int) bool {
 	}
 
 	// Check cards in reverse order (top to bottom visually)
-	for i := 0; i < len(h.Cards); i++ {
+	for i := len(h.Cards) - 1; i >= 0; i-- {
 		card := h.Cards[i]
 		if card.Contains(x, y) {
 			if h.selectedCard != nil && h.selectedCard != card {
@@ -157,11 +155,6 @@ func (h *UIHand) UpdateCards(cards []view.Card, cardImages map[string]*ebiten.Im
 	cardWidth := 80
 	cardHeight := 120
 
-	availableWidth := h.Width - cardWidth
-	if len(cards) > 1 {
-		h.Spacing = min(h.Spacing, availableWidth/(len(cards)-1))
-	}
-
 	// Create a map of ingredient names for recipe requirements
 	ingredientNames := make(map[string]string)
 	for _, card := range cards {
@@ -200,7 +193,11 @@ func (h *UIHand) UpdateCards(cards []view.Card, cardImages map[string]*ebiten.Im
 		uiCard.SetRequirementNames(ingredientNames)
 		uiCard.UpdateHightlightingHandRecipes(tableStack)
 
-		uiCard.X = h.X + i*(cardWidth+h.Spacing)
+		overlap := 30
+		uiCard.X = h.X + i*cardWidth + overlap
+		if i > 0 {
+			uiCard.X -= i * overlap
+		}
 
 		if uiCard != h.selectedCard {
 			uiCard.Y = h.Y

@@ -59,7 +59,7 @@ func (s *PlayingScene) Enter(g *Game) {
 	s.elements = append(s.elements, s.tableCards)
 
 	// Setup player hand UI
-	handWidth := 800
+	handWidth := 500
 	handHeight := 160
 	s.playerHand = ui.NewUIHand(centerX-handWidth/2, 600, handWidth, handHeight)
 	s.playerHand.SetOnPlayCard(func(cardID string) {
