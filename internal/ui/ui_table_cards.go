@@ -2,6 +2,7 @@ package ui
 
 import (
 	"image/color"
+	"math"
 	"slices"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -44,6 +45,22 @@ func (u *UITableCards) Update() {
 
 	for _, card := range u.Cards {
 		card.Update()
+
+		// Constrain card position to stay within table bounds
+		if card.IsDraggable() && card.isDragging {
+			dx := float64(card.X + card.Width/2 - u.X)
+			dy := float64(card.Y + card.Height/2 - u.Y)
+			distance := math.Sqrt(dx*dx + dy*dy)
+
+			maxDistance := float64(u.Radius - card.Width/2)
+			if distance > maxDistance {
+				dx /= distance
+				dy /= distance
+
+				card.X = u.X + int(dx*maxDistance) - card.Width/2
+				card.Y = u.Y + int(dy*maxDistance) - card.Height/2
+			}
+		}
 	}
 }
 

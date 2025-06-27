@@ -209,8 +209,12 @@ func (u *UICard) Update() {
 
 	if u.isDragging {
 		x, y := ebiten.CursorPosition()
-		u.X = x - u.dragOffsetX
-		u.Y = y - u.dragOffsetY
+		newX := x - u.dragOffsetX
+		newY := y - u.dragOffsetY
+
+		// The parent component will handle the constraint logic
+		u.X = newX
+		u.Y = newY
 	}
 }
 
@@ -265,3 +269,5 @@ func (u *UICard) SetPosition(x, y int) {
 	u.X = x
 	u.Y = y
 }
+
+func (u *UICard) IsDragging() bool { return u.isDragging }
