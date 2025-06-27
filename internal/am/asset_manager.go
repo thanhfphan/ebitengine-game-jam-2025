@@ -1,6 +1,8 @@
 package am
 
 import (
+	_ "image/jpeg"
+
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"

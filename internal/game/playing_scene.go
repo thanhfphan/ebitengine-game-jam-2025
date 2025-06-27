@@ -49,12 +49,13 @@ func (s *PlayingScene) Enter(g *Game) {
 	}
 
 	s.bgImage = g.AssetManager.GetImage("play_bg")
+	tableBgImage := g.AssetManager.GetImage("table_bg")
 
 	defaultFont := g.AssetManager.GetFont("nunito", 24)
 	centerX, centerY := ScreenW/2, ScreenH/2
 
 	// Setup table cards UI
-	s.tableCards = ui.NewUITableCards(centerX, centerY, TableRadius)
+	s.tableCards = ui.NewUITableCards(centerX, centerY, TableRadius, tableBgImage)
 	s.uiManager.AddElement(s.tableCards)
 	s.elements = append(s.elements, s.tableCards)
 

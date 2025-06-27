@@ -6,7 +6,6 @@ import (
 	"slices"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/thanhfphan/ebitengj2025/internal/view"
 	"golang.org/x/image/font"
 )
@@ -20,12 +19,13 @@ type UITableCards struct {
 
 	BorderColor     color.RGBA
 	BackgroundColor color.RGBA
+	BackgroundImage *ebiten.Image
 
 	visible bool
 	zIndex  int
 }
 
-func NewUITableCards(tableX, tableY, tableRadius int) *UITableCards {
+func NewUITableCards(tableX, tableY, tableRadius int, backgroundImage *ebiten.Image) *UITableCards {
 	return &UITableCards{
 		X:               tableX,
 		Y:               tableY,
@@ -35,6 +35,7 @@ func NewUITableCards(tableX, tableY, tableRadius int) *UITableCards {
 		zIndex:          0,
 		BackgroundColor: color.RGBA{R: 0x33, G: 0x33, B: 0x33, A: 0xff}, // Gray20
 		BorderColor:     color.RGBA{R: 0xff, G: 0xff, B: 0xff, A: 0xff}, // White
+		BackgroundImage: backgroundImage,
 	}
 }
 
@@ -69,11 +70,21 @@ func (u *UITableCards) Draw(screen *ebiten.Image) {
 		return
 	}
 
-	cx := float32(u.X)
-	cy := float32(u.Y)
-	r := float32(u.Radius)
-	vector.DrawFilledCircle(screen, cx, cy, r, u.BackgroundColor, false)
-	vector.StrokeCircle(screen, cx, cy, r, 1, u.BorderColor, false)
+	cx := float64(u.X)
+	cy := float64(u.Y)
+	r := float64(u.Radius)
+
+	imgW := u.BackgroundImage.Bounds().Dx()
+	imgH := u.BackgroundImage.Bounds().Dy()
+	scale := (r * 2) / float64(imgW)
+
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Scale(scale, scale)
+	op.GeoM.Translate(
+		cx-(float64(imgW)*scale)/2,
+		cy-(float64(imgH)*scale)/2,
+	)
+	screen.DrawImage(u.BackgroundImage, op)
 
 	for _, card := range u.Cards {
 		card.Draw(screen)

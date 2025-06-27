@@ -46,22 +46,18 @@ func (h *UIBotHand) Draw(screen *ebiten.Image) {
 	}
 
 	op := &ebiten.DrawImageOptions{}
+	cardImg := h.CardUI.Image
+
+	scaleX := float64(h.Width) / float64(cardImg.Bounds().Dx())
+	scaleY := float64(h.Height) / float64(cardImg.Bounds().Dy())
+
+	op.GeoM.Scale(scaleX, scaleY)
 	op.GeoM.Translate(float64(h.X), float64(h.Y))
 
-	cardWidth := h.Width
-	cardHeight := h.Height
+	screen.DrawImage(cardImg, op)
 
-	cardImg := h.CardUI.Image
-	if cardImg != nil {
-		op.GeoM.Scale(
-			float64(cardWidth)/float64(cardImg.Bounds().Dx()),
-			float64(cardHeight)/float64(cardImg.Bounds().Dy()),
-		)
-		screen.DrawImage(cardImg, op)
-
-		borderColor := color.RGBA{255, 255, 255, 255} // White border
-		vector.StrokeRect(screen, float32(h.X), float32(h.Y), float32(cardWidth), float32(cardHeight), 2, borderColor, false)
-	}
+	borderColor := color.RGBA{255, 255, 255, 255} // White border
+	vector.StrokeRect(screen, float32(h.X), float32(h.Y), float32(h.Width), float32(h.Height), 1, borderColor, false)
 
 	if h.CardCount > 0 {
 		countText := fmt.Sprintf("%d", h.CardCount)
@@ -84,10 +80,6 @@ func (h *UIBotHand) UpdateCards(cards []view.Card, cardBackImage *ebiten.Image) 
 	// Create or update the UIImage for the card back
 	if h.CardUI == nil {
 		h.CardUI = NewUIImage(h.X, h.Y, cardBackImage)
-	} else {
-		h.CardUI.Image = cardBackImage
-		h.CardUI.X = h.X
-		h.CardUI.Y = h.Y
 	}
 }
 

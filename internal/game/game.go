@@ -2,7 +2,6 @@ package game
 
 import (
 	"fmt"
-	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -110,10 +109,16 @@ func New() (*Game, error) {
 	g.AssetManager.PlayMusic(MusicBackground)
 
 	// Images
-	if err := g.AssetManager.LoadImage("main_bg", "assets/images/backgrounds/main_bg.png"); err != nil {
+	if err := g.AssetManager.LoadImage("main_bg", "assets/images/backgrounds/main_bg.jpg"); err != nil {
 		fmt.Println("Error loading background image:", err)
 	}
-	if err := g.AssetManager.LoadImage("play_bg", "assets/images/backgrounds/tet.png"); err != nil {
+	if err := g.AssetManager.LoadImage("play_bg", "assets/images/backgrounds/tet.jpg"); err != nil {
+		fmt.Println("Error loading background image:", err)
+	}
+	if err := g.AssetManager.LoadImage("table_bg", "assets/images/backgrounds/tablecard.png"); err != nil {
+		fmt.Println("Error loading background image:", err)
+	}
+	if err := g.AssetManager.LoadImage("card_back", "assets/images/backgrounds/card_back.png"); err != nil {
 		fmt.Println("Error loading background image:", err)
 	}
 
@@ -133,7 +138,7 @@ func (g *Game) setupSoloMatch(botCount int) []*ui.UIBotHand {
 	g.Players = append(g.Players, g.Player)
 	g.TurnManager.AddPlayer(g.Player.ID, false)
 
-	defaultFont := g.AssetManager.GetFont("nunito", 24)
+	defaultFont := g.AssetManager.GetFont("nunito", 32)
 
 	for i := 1; i <= botCount; i++ {
 		bot := entity.NewPlayer(fmt.Sprintf("B%d", i), entity.TypeBot, 0, 0)
@@ -243,11 +248,7 @@ func (g *Game) UpdateHands(playerHand *ui.UIHand, botHands []*ui.UIBotHand) {
 	playerHand.UpdateCards(viewCards, cardImages, viewTableStack, fonts)
 
 	// Update bot hands
-	cardBackImage := g.AssetManager.GetCardBackImage()
-	if cardBackImage == nil {
-		cardBackImage = ebiten.NewImage(80, 120)
-		cardBackImage.Fill(color.RGBA{100, 100, 100, 255}) // Gray color for card back
-	}
+	cardBackImage := g.AssetManager.GetImage("card_back")
 	for i, botHand := range botHands {
 		if i+1 >= len(g.Players) {
 			continue
