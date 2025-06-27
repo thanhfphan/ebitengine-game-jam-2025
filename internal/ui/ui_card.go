@@ -2,6 +2,7 @@ package ui
 
 import (
 	"image/color"
+	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
@@ -96,7 +97,6 @@ func (u *UICard) Draw(screen *ebiten.Image) {
 	radius := float32(6)
 	borderWidth := float32(1)
 
-	// Fill background
 	vector.DrawFilledRect(screen, x+radius, y, w-radius*2, h, bgColor, false)
 	vector.DrawFilledRect(screen, x, y+radius, w, h-radius*2, bgColor, false)
 	vector.DrawFilledCircle(screen, x+radius, y+radius, radius, bgColor, false)
@@ -104,11 +104,15 @@ func (u *UICard) Draw(screen *ebiten.Image) {
 	vector.DrawFilledCircle(screen, x+radius, y+h-radius, radius, bgColor, false)
 	vector.DrawFilledCircle(screen, x+w-radius, y+h-radius, radius, bgColor, false)
 
-	// Border
-	vector.StrokeLine(screen, x+radius, y, x+w-radius, y, borderWidth, borderColor, false)
-	vector.StrokeLine(screen, x+w, y+radius, x+w, y+h-radius, borderWidth, borderColor, false)
-	vector.StrokeLine(screen, x+radius, y+h, x+w-radius, y+h, borderWidth, borderColor, false)
-	vector.StrokeLine(screen, x, y+radius, x, y+h-radius, borderWidth, borderColor, false)
+	vector.StrokeLine(screen, x+radius, y, x+w-radius, y, borderWidth, borderColor, false)     // top
+	vector.StrokeLine(screen, x+w, y+radius, x+w, y+h-radius, borderWidth, borderColor, false) // right
+	vector.StrokeLine(screen, x+radius, y+h, x+w-radius, y+h, borderWidth, borderColor, false) // bottom
+	vector.StrokeLine(screen, x, y+radius, x, y+h-radius, borderWidth, borderColor, false)     // left
+
+	drawArc(screen, x+radius, y+radius, radius, math.Pi, 1.5*math.Pi, borderWidth, borderColor)     // top-left
+	drawArc(screen, x+w-radius, y+radius, radius, 1.5*math.Pi, 2*math.Pi, borderWidth, borderColor) // top-right
+	drawArc(screen, x+w-radius, y+h-radius, radius, 0, 0.5*math.Pi, borderWidth, borderColor)       // bottom-right
+	drawArc(screen, x+radius, y+h-radius, radius, 0.5*math.Pi, math.Pi, borderWidth, borderColor)   // bottom-left
 
 	if u.TitleFont == nil {
 		return
@@ -142,6 +146,23 @@ func (u *UICard) Draw(screen *ebiten.Image) {
 			}
 			text.Draw(screen, "• "+reqName, u.BodyFont, u.X+padding, reqY+i*15, col)
 		}
+	}
+}
+
+func drawArc(screen *ebiten.Image, cx, cy, r, start, end, width float32, col color.Color) {
+	const segments = 10
+	thetaStep := (end - start) / segments
+
+	for i := 0; i < segments; i++ {
+		theta1 := float64(start) + float64(thetaStep)*float64(i)
+		theta2 := float64(start) + float64(thetaStep)*float64(i+1)
+
+		x1 := float64(cx) + math.Cos(theta1)*float64(r)
+		y1 := float64(cy) + math.Sin(theta1)*float64(r)
+		x2 := float64(cx) + math.Cos(theta2)*float64(r)
+		y2 := float64(cy) + math.Sin(theta2)*float64(r)
+
+		vector.StrokeLine(screen, float32(x1), float32(y1), float32(x2), float32(y2), float32(width), col, false)
 	}
 }
 
