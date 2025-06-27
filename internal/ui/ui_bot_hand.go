@@ -6,7 +6,6 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
-	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/thanhfphan/ebitengj2025/internal/view"
 	"golang.org/x/image/font"
 )
@@ -55,9 +54,6 @@ func (h *UIBotHand) Draw(screen *ebiten.Image) {
 	op.GeoM.Translate(float64(h.X), float64(h.Y))
 
 	screen.DrawImage(cardImg, op)
-
-	borderColor := color.RGBA{255, 255, 255, 255} // White border
-	vector.StrokeRect(screen, float32(h.X), float32(h.Y), float32(h.Width), float32(h.Height), 1, borderColor, false)
 
 	if h.CardCount > 0 {
 		countText := fmt.Sprintf("%d", h.CardCount)
