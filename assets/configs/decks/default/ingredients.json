@@ -3,73 +3,46 @@
 		{
 			"id": "I_BANHPHO",
 			"name": "Banhpho",
-			"rarity": "common",
-			"type": "unknown",
-			"effects": [],
 			"icon": "i_banhpho.png"
 		},
 		{
 			"id": "I_NUOCDUNG",
 			"name": "Nuocdung",
-			"rarity": "common",
-			"type": "unknown",
-			"effects": [],
 			"icon": "i_nuocdung.png"
 		},
 		{
 			"id": "I_THITBO",
 			"name": "Thitbo",
-			"rarity": "common",
-			"type": "unknown",
-			"effects": [],
 			"icon": "i_thitbo.png"
 		},
 		{
 			"id": "I_BUN",
 			"name": "Bun",
-			"rarity": "common",
-			"type": "unknown",
-			"effects": [],
 			"icon": "i_bun.png"
 		},
 		{
 			"id": "I_BANHTRANG",
 			"name": "Banhtrang",
-			"rarity": "common",
-			"type": "unknown",
-			"effects": [],
 			"icon": "i_banhtrang.png"
 		},
 		{
 			"id": "I_TOM",
 			"name": "Tom",
-			"rarity": "common",
-			"type": "unknown",
-			"effects": [],
 			"icon": "i_tom.png"
 		},
 		{
 			"id": "I_RAUSONG",
 			"name": "Rausong",
-			"rarity": "common",
-			"type": "unknown",
-			"effects": [],
 			"icon": "i_rausong.png"
 		},
 		{
 			"id": "I_BANHMI",
 			"name": "Banhmi",
-			"rarity": "common",
-			"type": "unknown",
-			"effects": [],
 			"icon": "i_banhmi.png"
 		},
 		{
 			"id": "I_THITHEO",
 			"name": "Thitheo",
-			"rarity": "common",
-			"type": "unknown",
-			"effects": [],
 			"icon": "i_thitheo.png"
 		}
 	]

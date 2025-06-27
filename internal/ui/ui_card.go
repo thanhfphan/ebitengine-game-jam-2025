@@ -58,10 +58,10 @@ func NewUICard(id string, img *ebiten.Image, w, h int) *UICard {
 		dragOffsetX:             0,
 		dragOffsetY:             0,
 		visible:                 true,
-		BorderColor:             color.RGBA{R: 0xff, G: 0xff, B: 0xff, A: 0xff},
-		HoverColor:              color.RGBA{R: 0x80, G: 0x80, B: 0x80, A: 0xff},
-		SelectedColor:           color.RGBA{R: 0xff, G: 0xff, B: 0x00, A: 0xff},
-		HighlightColor:          color.RGBA{R: 0xff, G: 0xff, B: 0x00, A: 0xff},
+		BorderColor:             color.RGBA{R: 0xAA, G: 0xAA, B: 0xAA, A: 0xFF}, // Xám nhạt #AAAAAA
+		HoverColor:              color.RGBA{R: 0xFF, G: 0xDE, B: 0x66, A: 0xFF}, // Vàng sáng #FFDE66
+		SelectedColor:           color.RGBA{R: 0xFF, G: 0xFF, B: 0x00, A: 0xFF},
+		HighlightColor:          color.RGBA{R: 0xFF, G: 0xFF, B: 0x00, A: 0xFF},
 		CardType:                "ingredient",
 		HighlightedRequirements: make(map[string]bool),
 		RequirementNames:        make(map[string]string),
@@ -73,68 +73,74 @@ func (u *UICard) Draw(screen *ebiten.Image) {
 		return
 	}
 
-	// Draw card background
-	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Scale(
-		float64(u.Width)/float64(u.Image.Bounds().Dx()),  // scale x
-		float64(u.Height)/float64(u.Image.Bounds().Dy()), // scale y
-	)
-	op.GeoM.Translate(float64(u.X), float64(u.Y))
-	screen.DrawImage(u.Image, op)
+	bgColor := color.RGBA{0xFA, 0xF8, 0xF0, 0xFF} // Ingredient: #FAF8F0
+	if u.CardType == "recipe" {
+		bgColor = color.RGBA{0xFF, 0xF5, 0xCC, 0xFF} // Recipe: #FFF5CC
+	}
 
-	// Determine border color
 	borderColor := u.BorderColor
 	if u.selected {
 		borderColor = u.SelectedColor
-	} else if u.IsNeededForRecipe {
+	} else if u.IsNeededForRecipe || u.CanMakeDish {
 		borderColor = u.HighlightColor
 	} else if u.hovering {
 		borderColor = u.HoverColor
-	} else if u.CanMakeDish {
-		borderColor = u.HighlightColor
 	}
 
-	// Draw border
-	vector.DrawFilledRect(screen, float32(u.X), float32(u.Y), float32(u.Width), 1, borderColor, false)
-	vector.DrawFilledRect(screen, float32(u.X), float32(u.Y), 1, float32(u.Height), borderColor, false)
-	vector.DrawFilledRect(screen, float32(u.X+u.Width-1), float32(u.Y), 1, float32(u.Height), borderColor, false)
-	vector.DrawFilledRect(screen, float32(u.X), float32(u.Y+u.Height-1), float32(u.Width), 1, borderColor, false)
+	textColor := color.RGBA{0x44, 0x44, 0x44, 0xFF}     // #444444
+	titleColor := color.RGBA{0x33, 0x33, 0x33, 0xFF}    // #333333
+	highlightText := color.RGBA{0xD6, 0x86, 0x00, 0xFF} // #D68600
 
-	// Draw card content
-	if u.TitleFont != nil {
-		padding := 5
+	x, y := float32(u.X), float32(u.Y)
+	w, h := float32(u.Width), float32(u.Height)
+	radius := float32(6)
+	borderWidth := float32(1)
 
-		if u.CardType == "ingredient" {
-			iconText := u.Icon
-			text.Draw(screen, iconText, u.TitleFont, u.X+u.Width/2-10, u.Y+20, color.White)
-			vector.DrawFilledRect(screen, float32(u.X+padding), float32(u.Y+30), float32(u.Width-padding*2), 1, color.White, false)
-			if u.Name != "" {
-				text.Draw(screen, u.Name, u.BodyFont, u.X+padding, u.Y+50, color.White)
+	// Fill background
+	vector.DrawFilledRect(screen, x+radius, y, w-radius*2, h, bgColor, false)
+	vector.DrawFilledRect(screen, x, y+radius, w, h-radius*2, bgColor, false)
+	vector.DrawFilledCircle(screen, x+radius, y+radius, radius, bgColor, false)
+	vector.DrawFilledCircle(screen, x+w-radius, y+radius, radius, bgColor, false)
+	vector.DrawFilledCircle(screen, x+radius, y+h-radius, radius, bgColor, false)
+	vector.DrawFilledCircle(screen, x+w-radius, y+h-radius, radius, bgColor, false)
+
+	// Border
+	vector.StrokeLine(screen, x+radius, y, x+w-radius, y, borderWidth, borderColor, false)
+	vector.StrokeLine(screen, x+w, y+radius, x+w, y+h-radius, borderWidth, borderColor, false)
+	vector.StrokeLine(screen, x+radius, y+h, x+w-radius, y+h, borderWidth, borderColor, false)
+	vector.StrokeLine(screen, x, y+radius, x, y+h-radius, borderWidth, borderColor, false)
+
+	if u.TitleFont == nil {
+		return
+	}
+
+	padding := 5
+	if u.CardType == "ingredient" {
+		text.Draw(screen, u.Icon, u.TitleFont, u.X+u.Width/2-10, u.Y+20, titleColor)
+		vector.DrawFilledRect(screen, float32(u.X+padding), float32(u.Y+30), float32(u.Width-padding*2), 1, titleColor, false)
+		if u.Name != "" {
+			text.Draw(screen, u.Name, u.BodyFont, u.X+padding, u.Y+50, textColor)
+		}
+	} else if u.CardType == "recipe" {
+		titleY := u.Y + 20
+		title := u.Icon + " " + u.Name
+		text.Draw(screen, title, u.TitleFont, u.X+padding, titleY, titleColor)
+
+		vector.DrawFilledRect(screen, float32(u.X+padding), float32(titleY+5), float32(u.Width-padding*2), 1, titleColor, false)
+
+		text.Draw(screen, "Require:", u.SubtitleFont, u.X+padding, titleY+20, textColor)
+
+		reqY := titleY + 35
+		for i, reqID := range u.Requirements {
+			reqName := u.RequirementNames[reqID]
+			if reqName == "" {
+				reqName = reqID
 			}
-		} else if u.CardType == "recipe" {
-			titleY := u.Y + 20
-			iconText := u.Icon
-			title := iconText + " " + u.Name
-			text.Draw(screen, title, u.TitleFont, u.X+padding, titleY, color.White)
-
-			vector.DrawFilledRect(screen, float32(u.X+padding), float32(titleY+5), float32(u.Width-padding*2), 1, color.White, false)
-
-			text.Draw(screen, "Require:", u.SubtitleFont, u.X+padding, titleY+20, color.White)
-
-			reqY := titleY + 35
-			for i, reqID := range u.Requirements {
-				reqName := u.RequirementNames[reqID]
-				if reqName == "" {
-					reqName = reqID
-				}
-
-				textColor := color.RGBA{R: 0xff, G: 0xff, B: 0xff, A: 0xff}
-				if u.HighlightedRequirements[reqID] {
-					textColor = u.HighlightColor
-				}
-
-				text.Draw(screen, "• "+reqName, u.BodyFont, u.X+padding, reqY+i*15, textColor)
+			col := textColor
+			if u.HighlightedRequirements[reqID] {
+				col = highlightText
 			}
+			text.Draw(screen, "• "+reqName, u.BodyFont, u.X+padding, reqY+i*15, col)
 		}
 	}
 }

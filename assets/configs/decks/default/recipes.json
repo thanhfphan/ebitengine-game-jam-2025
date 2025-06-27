@@ -8,8 +8,6 @@
 				"I_NUOCDUNG",
 				"I_THITBO"
 			],
-			"score": 10,
-			"difficulty": 2,
 			"icon": "pho.png"
 		},
 		{
@@ -20,8 +18,6 @@
 				"I_NUOCDUNG",
 				"I_THITBO"
 			],
-			"score": 11,
-			"difficulty": 2,
 			"icon": "bunbo.png"
 		},
 		{
@@ -33,8 +29,6 @@
 				"I_BUN",
 				"I_RAUSONG"
 			],
-			"score": 13,
-			"difficulty": 3,
 			"icon": "goicuon.png"
 		},
 		{
@@ -45,8 +39,6 @@
 				"I_THITHEO",
 				"I_RAUSONG"
 			],
-			"score": 12,
-			"difficulty": 2,
 			"icon": "banhmi_thit.png"
 		}
 	]
