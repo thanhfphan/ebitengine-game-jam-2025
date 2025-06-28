@@ -42,6 +42,8 @@ tasks:
   build-web:
     desc: Build game for web (itch.io)
     cmds:
+      - echo "Copying assets..."
+      - cp -r assets {{.WEB_DIR}}
       - mkdir -p {{.WEB_DIR}}
       - echo "Building game for web..."
       - GOOS=js GOARCH=wasm go build {{.GO_FLAGS}} -o {{.WEB_DIR}}/game.wasm cmd/main.go

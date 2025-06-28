@@ -28,15 +28,15 @@ func (s *Sound) Play() error {
 
 	switch s.format {
 	case "wav":
-		wavReader, err := wav.DecodeWithSampleRate(s.audioContext.SampleRate(), bytes.NewReader(s.data))
-		if err != nil {
-			return fmt.Errorf("error decoding WAV: %v", err)
+		wavReader, errwav := wav.DecodeWithSampleRate(s.audioContext.SampleRate(), bytes.NewReader(s.data))
+		if errwav != nil {
+			return fmt.Errorf("error decoding WAV: %v", errwav)
 		}
 		player, err = s.audioContext.NewPlayer(wavReader)
 	case "ogg":
-		oggReader, err := vorbis.DecodeWithSampleRate(s.audioContext.SampleRate(), bytes.NewReader(s.data))
-		if err != nil {
-			return fmt.Errorf("error decoding OGG: %v", err)
+		oggReader, errr := vorbis.DecodeWithSampleRate(s.audioContext.SampleRate(), bytes.NewReader(s.data))
+		if errr != nil {
+			return fmt.Errorf("error decoding OGG: %v", errr)
 		}
 		player, err = s.audioContext.NewPlayer(oggReader)
 	default:
@@ -50,13 +50,7 @@ func (s *Sound) Play() error {
 	// Set volume based on master volume
 	player.SetVolume(s.volume * s.am.masterVolume)
 
-	go func() {
-		player.Play()
-		for player.IsPlaying() {
-			// Wait for playback to complete
-		}
-		player.Close()
-	}()
+	player.Play()
 
 	return nil
 }

@@ -8,13 +8,20 @@
 ## How to start
 
 ```bash
-task run # requires taskfile
+task run # requires Taskfile
 ```
 
 or
 
 ```bash
 go run cmd/main.go
+```
+
+or
+
+```bash
+task run-web # requires Taskfile
+# And then open browser at http://localhost:8080
 ```
 
 ## Project Structure

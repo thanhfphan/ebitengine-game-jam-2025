@@ -4,6 +4,7 @@
 *.dll
 *.so
 *.dylib
+*.wasm
 build/
 
 # Test binary, built with `go test -c`
@@ -35,4 +36,4 @@ logs/*
 tmp/*
 bin/*
 
-game_web/*
+game_web/assets

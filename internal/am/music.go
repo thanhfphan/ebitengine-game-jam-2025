@@ -4,10 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"os"
-	"path/filepath"
-	"strings"
-	"sync"
 
 	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/hajimehoshi/ebiten/v2/audio/vorbis"
@@ -23,15 +19,11 @@ type Music struct {
 	player       *audio.Player
 	isPlaying    bool
 	loop         bool
-	mu           sync.Mutex
 	am           *AssetManager
 }
 
 // Play starts playing the music
 func (m *Music) Play() error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
 	if m.isPlaying {
 		return nil
 	}
@@ -52,9 +44,6 @@ func (m *Music) Play() error {
 
 // Stop stops the music playback
 func (m *Music) Stop() error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
 	if !m.isPlaying || m.player == nil {
 		return nil
 	}
@@ -67,9 +56,6 @@ func (m *Music) Stop() error {
 
 // SetVolume sets the volume for this music track
 func (m *Music) SetVolume(volume float64) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
 	m.volume = volume
 	if m.player != nil && m.isPlaying {
 		m.player.SetVolume(m.volume * m.am.masterVolume * m.am.musicVolume)
@@ -78,36 +64,23 @@ func (m *Music) SetVolume(volume float64) {
 
 // IsPlaying returns whether the music is currently playing
 func (m *Music) IsPlaying() bool {
-	m.mu.Lock()
-	defer m.mu.Unlock()
 	return m.isPlaying
 }
 
 // SetLoop sets whether the music should loop
 func (m *Music) SetLoop(loop bool) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
 	m.loop = loop
 }
 
-// Update should be called regularly to handle looping
 func (m *Music) Update() error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	if !m.isPlaying || m.player == nil {
-		return nil
-	}
-
-	if m.loop && !m.player.IsPlaying() {
-		// Recreate player for looping
+	// Only needed for WAV (manual loop)
+	if m.format == "wav" && m.loop && m.player != nil && !m.player.IsPlaying() {
 		if err := m.createPlayer(); err != nil {
 			return err
 		}
 		m.player.SetVolume(m.volume * m.am.masterVolume * m.am.musicVolume)
 		m.player.Play()
 	}
-
 	return nil
 }
 
@@ -119,16 +92,26 @@ func (m *Music) createPlayer() error {
 	)
 
 	switch m.format {
+	case "ogg":
+		baseReader, err := vorbis.DecodeWithSampleRate(m.audioContext.SampleRate(), bytes.NewReader(m.data))
+		if err != nil {
+			return fmt.Errorf("error decoding OGG: %v", err)
+		}
+
+		if m.loop {
+			reader = audio.NewInfiniteLoop(baseReader, baseReader.Length())
+		} else {
+			reader = baseReader
+		}
+
 	case "wav":
 		reader, err = wav.DecodeWithSampleRate(m.audioContext.SampleRate(), bytes.NewReader(m.data))
-	case "ogg":
-		reader, err = vorbis.DecodeWithSampleRate(m.audioContext.SampleRate(), bytes.NewReader(m.data))
+		if err != nil {
+			return fmt.Errorf("error decoding WAV: %v", err)
+		}
+
 	default:
 		return fmt.Errorf("unsupported audio format: %s", m.format)
-	}
-
-	if err != nil {
-		return fmt.Errorf("error decoding audio: %v", err)
 	}
 
 	m.player, err = m.audioContext.NewPlayer(reader)
@@ -137,27 +120,6 @@ func (m *Music) createPlayer() error {
 	}
 
 	return nil
-}
-
-// LoadMusic loads a music track from a file
-func (am *AssetManager) LoadMusic(name, filePath string) error {
-	var format string
-	ext := strings.ToLower(filepath.Ext(filePath)) // ".wav" or ".ogg"
-	switch ext {
-	case ".wav":
-		format = "wav"
-	case ".ogg":
-		format = "ogg"
-	default:
-		return fmt.Errorf("unsupported audio format: %s", ext)
-	}
-
-	data, err := os.ReadFile(filePath)
-	if err != nil {
-		return fmt.Errorf("error reading music file: %v", err)
-	}
-
-	return am.LoadMusicFromBytes(name, data, format)
 }
 
 // LoadMusicFromBytes loads a music track from byte data
