@@ -164,6 +164,7 @@ func (h *UIHand) UpdateCards(cards []view.Card, tableStack view.TableStack, font
 
 		if existing, ok := existingCards[card.ID]; ok {
 			uiCard = existing
+			uiCard.UpdateHightlightingHandRecipes(tableStack)
 		} else {
 			uiCard = NewUICard(card.ID, cardWidth, cardHeight)
 			uiCard.SetCardData(card, fonts["title"], fonts["subtitle"], fonts["body"])
@@ -187,7 +188,7 @@ func (h *UIHand) UpdateCards(cards []view.Card, tableStack view.TableStack, font
 	if h.selectedCard != nil {
 		stillExists := false
 		for _, card := range newCards {
-			if card == h.selectedCard {
+			if card.ID == h.selectedCard.ID {
 				stillExists = true
 				break
 			}

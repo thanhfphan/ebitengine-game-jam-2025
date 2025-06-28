@@ -18,7 +18,6 @@ type UICard struct {
 	X, Y           int
 	Width, Height  int
 	BorderColor    color.RGBA
-	HoverColor     color.RGBA
 	SelectedColor  color.RGBA
 	HighlightColor color.RGBA
 	CanMakeDish    bool
@@ -58,9 +57,8 @@ func NewUICard(id string, w, h int) *UICard {
 		dragOffsetY:             0,
 		visible:                 true,
 		BorderColor:             color.RGBA{R: 0xAA, G: 0xAA, B: 0xAA, A: 0xFF}, // Xám nhạt #AAAAAA
-		HoverColor:              color.RGBA{R: 0xFF, G: 0xDE, B: 0x66, A: 0xFF}, // Vàng sáng #FFDE66
-		SelectedColor:           color.RGBA{R: 0xFF, G: 0xFF, B: 0x00, A: 0xFF},
-		HighlightColor:          color.RGBA{R: 0xFF, G: 0xFF, B: 0x00, A: 0xFF},
+		SelectedColor:           color.RGBA{R: 0x00, G: 0xFF, B: 0x00, A: 0xFF}, // Green
+		HighlightColor:          color.RGBA{R: 0xFF, G: 0x00, B: 0x00, A: 0xFF}, // Red
 		CardType:                "ingredient",
 		HighlightedRequirements: make(map[string]bool),
 		RequirementNames:        make(map[string]string),
@@ -82,9 +80,9 @@ func (u *UICard) Draw(screen *ebiten.Image) {
 		borderColor = u.SelectedColor
 	} else if u.IsNeededForRecipe || u.CanMakeDish {
 		borderColor = u.HighlightColor
-	} else if u.hovering {
-		borderColor = u.HoverColor
 	}
+	// else if u.hovering {
+	// }
 
 	textColor := color.RGBA{0x44, 0x44, 0x44, 0xFF}     // #444444
 	titleColor := color.RGBA{0x33, 0x33, 0x33, 0xFF}    // #333333
@@ -93,7 +91,7 @@ func (u *UICard) Draw(screen *ebiten.Image) {
 	x, y := float32(u.X), float32(u.Y)
 	w, h := float32(u.Width), float32(u.Height)
 	radius := float32(6)
-	borderWidth := float32(1)
+	borderWidth := float32(2)
 
 	vector.DrawFilledRect(screen, x+radius, y, w-radius*2, h, bgColor, false)
 	vector.DrawFilledRect(screen, x, y+radius, w, h-radius*2, bgColor, false)
@@ -191,7 +189,7 @@ func (u *UICard) UpdateHightlightingHandRecipes(tableStack view.TableStack) {
 	}
 
 	for _, reqID := range u.Requirements {
-		if _, has := tableStack.MapIngredients[reqID]; has {
+		if _, has := tableStack.MapIngredientsByID[reqID]; has {
 			u.HighlightedRequirements[reqID] = true
 		}
 	}

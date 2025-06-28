@@ -20,7 +20,8 @@ type Card struct {
 
 // TableStack represents a collection of cards on the table
 type TableStack struct {
-	MapRecipes     map[string]Card
-	MapIngredients map[string]Card
-	StackRecipes   []string // Newest(last put on table) to oldest
+	MapRecipes         map[string]Card
+	MapIngredients     map[string]Card
+	MapIngredientsByID map[string]bool
+	StackRecipes       []string // Newest(last put on table) to oldest
 }
