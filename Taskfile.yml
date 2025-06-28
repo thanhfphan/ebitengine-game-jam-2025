@@ -5,6 +5,9 @@ vars:
   BINARY_DIR: bin
   GAME_BINARY: "{{.BINARY_DIR}}/game"
   GO_FLAGS: '-ldflags="-s -w"'
+  WEB_DIR: game_web
+  GOROOT:
+    sh: go env GOROOT
 
 tasks:
   default:
@@ -28,3 +31,17 @@ tasks:
       # - task: build
       - echo "Running game..."
       - go run cmd/main.go
+
+  run-web:
+    desc: Run game for web (itch.io)
+    cmds:
+      - task: build-web
+      - echo "Running game for web..."
+      - go run cmd/testserver/main.go
+
+  build-web:
+    desc: Build game for web (itch.io)
+    cmds:
+      - mkdir -p {{.WEB_DIR}}
+      - echo "Building game for web..."
+      - GOOS=js GOARCH=wasm go build {{.GO_FLAGS}} -o {{.WEB_DIR}}/game.wasm cmd/main.go

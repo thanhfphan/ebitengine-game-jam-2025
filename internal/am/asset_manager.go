@@ -1,6 +1,7 @@
 package am
 
 import (
+	"bytes"
 	_ "image/jpeg"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -44,6 +45,15 @@ func NewAssetManager() *AssetManager {
 
 func (am *AssetManager) LoadImage(id string, path string) error {
 	img, _, err := ebitenutil.NewImageFromFile(path)
+	if err != nil {
+		return err
+	}
+	am.images[id] = img
+	return nil
+}
+
+func (am *AssetManager) LoadImageFromBytes(id string, data []byte) error {
+	img, _, err := ebitenutil.NewImageFromReader(bytes.NewReader(data))
 	if err != nil {
 		return err
 	}

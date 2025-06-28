@@ -6,8 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	mrand "math/rand"
-	"os"
 
+	"github.com/thanhfphan/ebitengj2025/assets/configs"
 	"github.com/thanhfphan/ebitengj2025/internal/entity"
 )
 
@@ -39,22 +39,13 @@ func (m *Manager) LoadDeck(theme string) error {
 	m.Deck = []*entity.Card{}
 	m.TableStack = entity.NewTableStack()
 
-	ingData, err := os.ReadFile("assets/configs/decks/" + theme + "/ingredients.json")
-	if err != nil {
-		return err
-	}
-	rcpData, err := os.ReadFile("assets/configs/decks/" + theme + "/recipes.json")
-	if err != nil {
-		return err
-	}
-
 	var ingFile IngredientFile
 	var rcpFile RecipeFile
 
-	if err := json.Unmarshal(ingData, &ingFile); err != nil {
+	if err := json.Unmarshal(configs.DefaultIngredientsJSON, &ingFile); err != nil {
 		return err
 	}
-	if err := json.Unmarshal(rcpData, &rcpFile); err != nil {
+	if err := json.Unmarshal(configs.DefaultRecipesJSON, &rcpFile); err != nil {
 		return err
 	}
 

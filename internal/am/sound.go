@@ -79,6 +79,11 @@ func (am *AssetManager) LoadSound(name, filePath string) error {
 		return fmt.Errorf("error reading sound file: %v", err)
 	}
 
+	return am.LoadSoundFromBytes(name, data, format)
+}
+
+// LoadSoundFromBytes loads a sound effect from byte data
+func (am *AssetManager) LoadSoundFromBytes(name string, data []byte, format string) error {
 	am.sounds[name] = &Sound{
 		audioContext: am.audioContext,
 		data:         data,

@@ -7,6 +7,8 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/thanhfphan/ebitengj2025/assets/fonts"
+	"github.com/thanhfphan/ebitengj2025/assets/images"
+	"github.com/thanhfphan/ebitengj2025/assets/sounds"
 	"github.com/thanhfphan/ebitengj2025/internal/ai"
 	"github.com/thanhfphan/ebitengj2025/internal/am"
 	"github.com/thanhfphan/ebitengj2025/internal/card"
@@ -90,36 +92,36 @@ func New() (*Game, error) {
 	g.AssetManager.LoadFont("nunito", fonts.NunitoRegular_ttf, 18)
 
 	// Music and sounds
-	if err := g.AssetManager.LoadMusic(MusicBackground, "assets/sounds/vietnam-bamboo-flute.ogg"); err != nil {
+	if err := g.AssetManager.LoadMusicFromBytes(MusicBackground, sounds.BambooFlute_ogg, "ogg"); err != nil {
 		return nil, err
 	}
 	assetManager.SetMusicVolume(0.2)
-	if err := g.AssetManager.LoadSound(SoundSelect, "assets/sounds/card-swipe.wav"); err != nil {
+	if err := g.AssetManager.LoadSoundFromBytes(SoundSelect, sounds.CardSwipe_wav, "wav"); err != nil {
 		return nil, err
 	}
-	if err := g.AssetManager.LoadSound(SoundPlay, "assets/sounds/poppop.wav"); err != nil {
+	if err := g.AssetManager.LoadSoundFromBytes(SoundPlay, sounds.PopPop_wav, "wav"); err != nil {
 		return nil, err
 	}
-	if err := g.AssetManager.LoadSound(SoundRecipeMade, "assets/sounds/ding-effect.wav"); err != nil {
+	if err := g.AssetManager.LoadSoundFromBytes(SoundRecipeMade, sounds.DingEffect_wav, "wav"); err != nil {
 		return nil, err
 	}
 
 	g.AssetManager.PlayMusic(MusicBackground)
 
 	// Images
-	if err := g.AssetManager.LoadImage(ImageMainBG, "assets/images/backgrounds/main_bg.jpg"); err != nil {
+	if err := g.AssetManager.LoadImageFromBytes(ImageMainBG, images.MainBG_jpg); err != nil {
 		fmt.Println("Error loading background image:", err)
 	}
-	if err := g.AssetManager.LoadImage(ImagePlayBG, "assets/images/backgrounds/tet.jpg"); err != nil {
+	if err := g.AssetManager.LoadImageFromBytes(ImagePlayBG, images.PlayBG_jpg); err != nil {
 		fmt.Println("Error loading background image:", err)
 	}
-	if err := g.AssetManager.LoadImage(ImageTableBG, "assets/images/backgrounds/tablecard.png"); err != nil {
+	if err := g.AssetManager.LoadImageFromBytes(ImageTableBG, images.TableBG_png); err != nil {
 		fmt.Println("Error loading background image:", err)
 	}
-	if err := g.AssetManager.LoadImage(ImageCardBack, "assets/images/backgrounds/card_back.png"); err != nil {
+	if err := g.AssetManager.LoadImageFromBytes(ImageCardBack, images.CardBack_png); err != nil {
 		fmt.Println("Error loading background image:", err)
 	}
-	if err := g.AssetManager.LoadImage(ImageSettingIcon, "assets/images/ui/setting_icon.png"); err != nil {
+	if err := g.AssetManager.LoadImageFromBytes(ImageSettingIcon, images.SettingIcon_png); err != nil {
 		fmt.Println("Error loading setting icon:", err)
 	}
 

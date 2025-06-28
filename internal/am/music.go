@@ -157,6 +157,11 @@ func (am *AssetManager) LoadMusic(name, filePath string) error {
 		return fmt.Errorf("error reading music file: %v", err)
 	}
 
+	return am.LoadMusicFromBytes(name, data, format)
+}
+
+// LoadMusicFromBytes loads a music track from byte data
+func (am *AssetManager) LoadMusicFromBytes(name string, data []byte, format string) error {
 	am.music[name] = &Music{
 		audioContext: am.audioContext,
 		data:         data,
