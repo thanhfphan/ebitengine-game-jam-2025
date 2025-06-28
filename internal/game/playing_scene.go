@@ -17,16 +17,17 @@ import (
 var _ Scene = (*PlayingScene)(nil)
 
 type PlayingScene struct {
-	elements   []ui.Element
-	playerHand *ui.UIHand
-	botHands   []*ui.UIBotHand
-	tableCards *ui.UITableCards
-	isPaused   bool
-	pauseMenu  *PauseMenu
-	uiManager  *ui.Manager
-	bgImage    *ebiten.Image
-	playBtn    *ui.UIButton
-	passBtn    *ui.UIButton
+	elements     []ui.Element
+	playerHand   *ui.UIHand
+	botHands     []*ui.UIBotHand
+	tableCards   *ui.UITableCards
+	isPaused     bool
+	pauseMenu    *PauseMenu
+	gameOverMenu *GameOverMenu
+	uiManager    *ui.Manager
+	bgImage      *ebiten.Image
+	playBtn      *ui.UIButton
+	passBtn      *ui.UIButton
 }
 
 type PauseMenu struct {
@@ -34,15 +35,22 @@ type PauseMenu struct {
 	overlay  *ebiten.Image
 }
 
+type GameOverMenu struct {
+	elements []ui.Element
+	overlay  *ebiten.Image
+	visible  bool
+}
+
 func NewPlayingScene() *PlayingScene {
 	return &PlayingScene{
-		elements:  []ui.Element{},
-		botHands:  []*ui.UIBotHand{},
-		isPaused:  false,
-		pauseMenu: nil,
-		uiManager: ui.NewManager(),
-		playBtn:   nil,
-		passBtn:   nil,
+		elements:     []ui.Element{},
+		botHands:     []*ui.UIBotHand{},
+		isPaused:     false,
+		pauseMenu:    nil,
+		gameOverMenu: nil,
+		uiManager:    ui.NewManager(),
+		playBtn:      nil,
+		passBtn:      nil,
 	}
 }
 
@@ -118,6 +126,7 @@ func (s *PlayingScene) Enter(g *Game) {
 	s.playBtn = playBtn
 
 	s.initPauseMenu(g)
+	s.initGameOverMenu(g)
 
 	s.setupGame(g)
 }
@@ -152,23 +161,20 @@ func (s *PlayingScene) Update(g *Game) {
 		return
 	}
 
-	// Don't update game state if paused
-	if s.isPaused {
+	// Don't update game state if paused or game over
+	if s.isPaused || (s.gameOverMenu != nil && s.gameOverMenu.visible) {
 		return
 	}
 
 	// Check for game over
 	if winnerOrder := g.TurnManager.FinishedOrder(); len(winnerOrder) == len(g.Players) {
 		fmt.Println("Game finished. Winner order:", winnerOrder)
-		g.PopScene()
-		g.PushScene(NewMainMenuScene())
+		s.showGameOverMenu()
 		return
 	}
 
 	s.updateButtonStates(g)
-
 	g.UpdateTurn()
-
 	s.UpdateHands(g)
 }
 
@@ -226,6 +232,18 @@ func (s *PlayingScene) UpdateHands(g *Game) {
 }
 
 func (s *PlayingScene) Draw(screen *ebiten.Image, g *Game) {
+	// Draw pause overlay if paused
+	if s.isPaused && s.pauseMenu != nil && s.pauseMenu.overlay != nil {
+		op := &ebiten.DrawImageOptions{}
+		screen.DrawImage(s.pauseMenu.overlay, op)
+	}
+
+	// Draw game over overlay if game is over
+	if s.gameOverMenu != nil && s.gameOverMenu.visible && s.gameOverMenu.overlay != nil {
+		op := &ebiten.DrawImageOptions{}
+		screen.DrawImage(s.gameOverMenu.overlay, op)
+	}
+
 	if s.bgImage != nil {
 		op := &ebiten.DrawImageOptions{}
 
@@ -237,12 +255,6 @@ func (s *PlayingScene) Draw(screen *ebiten.Image, g *Game) {
 
 		op.GeoM.Scale(sx, sy)
 		screen.DrawImage(s.bgImage, op)
-	}
-
-	// Draw pause overlay if paused
-	if s.isPaused && s.pauseMenu != nil && s.pauseMenu.overlay != nil {
-		op := &ebiten.DrawImageOptions{}
-		screen.DrawImage(s.pauseMenu.overlay, op)
 	}
 
 	if g.DebugMode {
@@ -354,5 +366,75 @@ func (s *PlayingScene) togglePause(g *Game) {
 	// Show/hide pause menu elements
 	for _, element := range s.pauseMenu.elements {
 		element.SetVisible(s.isPaused)
+	}
+}
+
+// Initialize the game over menu
+func (s *PlayingScene) initGameOverMenu(g *Game) {
+	s.gameOverMenu = &GameOverMenu{
+		elements: []ui.Element{},
+		visible:  false,
+	}
+
+	s.gameOverMenu.overlay = ebiten.NewImage(ScreenW, ScreenH)
+	s.gameOverMenu.overlay.Fill(color.RGBA{0, 0, 0, 180})
+
+	titleFont := g.AssetManager.GetFont("nunito", 48)
+	defaultFont := g.AssetManager.GetFont("nunito", 24)
+
+	centerX := ScreenW / 2
+	startY := ScreenH / 3
+	btnWidth := 300
+	btnHeight := 50
+	btnSpacing := 70
+
+	// Game over title
+	gameOverTitle := ui.NewUILabel(centerX, startY-80, "GAME OVER", titleFont)
+	gameOverTitle.AlignCenter()
+	gameOverTitle.TextColor = color.RGBA{0xFF, 0xE7, 0x4D, 0xFF}
+	s.uiManager.AddElement(gameOverTitle)
+	s.gameOverMenu.elements = append(s.gameOverMenu.elements, gameOverTitle)
+
+	// Button colors
+	colButtonBg := color.RGBA{0xF3, 0xE2, 0xC3, 0xFF}
+	colButtonHover := color.RGBA{0xFF, 0xE0, 0x7A, 0xFF}
+	colButtonPressed := color.RGBA{0xD9, 0xC3, 0x90, 0xFF}
+	colButtonText := color.RGBA{0x36, 0x55, 0x34, 0xFF}
+
+	// New Game button
+	newGameBtn := ui.NewUIButton(centerX-btnWidth/2, startY, btnWidth, btnHeight, "New Game", defaultFont)
+	newGameBtn.BackgroundColor = colButtonBg
+	newGameBtn.HoverColor = colButtonHover
+	newGameBtn.PressedColor = colButtonPressed
+	newGameBtn.TextColor = colButtonText
+	newGameBtn.OnClick = func() {
+		g.PopScene()
+		g.PushScene(NewPlayingScene())
+	}
+	s.uiManager.AddElement(newGameBtn)
+	s.gameOverMenu.elements = append(s.gameOverMenu.elements, newGameBtn)
+
+	// Main Menu button
+	mainMenuBtn := ui.NewUIButton(centerX-btnWidth/2, startY+btnSpacing, btnWidth, btnHeight, "Return to Main Menu", defaultFont)
+	mainMenuBtn.BackgroundColor = colButtonBg
+	mainMenuBtn.HoverColor = colButtonHover
+	mainMenuBtn.PressedColor = colButtonPressed
+	mainMenuBtn.TextColor = colButtonText
+	mainMenuBtn.OnClick = func() {
+		g.PopScene()
+		g.PushScene(NewMainMenuScene())
+	}
+	s.uiManager.AddElement(mainMenuBtn)
+	s.gameOverMenu.elements = append(s.gameOverMenu.elements, mainMenuBtn)
+
+	for _, element := range s.gameOverMenu.elements {
+		element.SetVisible(false)
+	}
+}
+
+func (s *PlayingScene) showGameOverMenu() {
+	s.gameOverMenu.visible = true
+	for _, element := range s.gameOverMenu.elements {
+		element.SetVisible(true)
 	}
 }
