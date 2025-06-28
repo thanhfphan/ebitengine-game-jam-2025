@@ -79,7 +79,7 @@ func (s *MainMenuScene) Enter(g *Game) {
 		makeBtn("Settings", y+btnH+gapY, func() {
 			g.PushScene(NewSettingsScene())
 		}),
-		makeBtn("Quit", y+2*(btnH+gapY), func() { g.State = GameStateQuit }),
+		// makeBtn("Quit", y+2*(btnH+gapY), func() { g.State = GameStateQuit }),
 	)
 
 }
