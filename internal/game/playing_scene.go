@@ -25,6 +25,8 @@ type PlayingScene struct {
 	pauseMenu  *PauseMenu
 	uiManager  *ui.Manager
 	bgImage    *ebiten.Image
+	playBtn    *ui.UIButton
+	passBtn    *ui.UIButton
 }
 
 type PauseMenu struct {
@@ -39,8 +41,9 @@ func NewPlayingScene() *PlayingScene {
 		isPaused:  false,
 		pauseMenu: nil,
 		uiManager: ui.NewManager(),
+		playBtn:   nil,
+		passBtn:   nil,
 	}
-
 }
 
 func (s *PlayingScene) Enter(g *Game) {
@@ -104,6 +107,7 @@ func (s *PlayingScene) Enter(g *Game) {
 	}
 	s.uiManager.AddElement(passBtn)
 	s.elements = append(s.elements, passBtn)
+	s.passBtn = passBtn
 
 	playBtn := ui.NewUIButton(btnX, 650, 100, 40, "Play", defaultFont)
 	playBtn.OnClick = func() {
@@ -111,6 +115,7 @@ func (s *PlayingScene) Enter(g *Game) {
 	}
 	s.uiManager.AddElement(playBtn)
 	s.elements = append(s.elements, playBtn)
+	s.playBtn = playBtn
 
 	s.initPauseMenu(g)
 
@@ -160,9 +165,23 @@ func (s *PlayingScene) Update(g *Game) {
 		return
 	}
 
+	s.updateButtonStates(g)
+
 	g.UpdateTurn()
 
 	s.UpdateHands(g)
+}
+
+func (s *PlayingScene) updateButtonStates(g *Game) {
+	if s.playBtn == nil || s.passBtn == nil {
+		return
+	}
+
+	current := g.TurnManager.Current()
+	isPlayerTurn := current != nil && current.ID == g.Player.ID && !current.Finished
+
+	s.playBtn.SetVisible(isPlayerTurn)
+	s.passBtn.SetVisible(isPlayerTurn)
 }
 
 func (s *PlayingScene) UpdateHands(g *Game) {
