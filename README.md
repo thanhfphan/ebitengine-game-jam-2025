@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- [Go](https://go.dev/dl/) (version 1.24.4)
+- [Go](https://go.dev/dl/) (version 1.24.3)
 - [Taskfile](https://taskfile.dev/installation/) (optional)
 
 ## How to start
