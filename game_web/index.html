@@ -3,7 +3,7 @@
 
 <head>
 	<meta charset="utf-8">
-	<title>Food Cards</title>
+	<title>Ebiten Game</title>
 	<style>
 		body {
 			margin: 0;
@@ -12,10 +12,24 @@
 			font-family: sans-serif;
 			text-align: center;
 		}
+
+		#loading {
+			position: absolute;
+			top: 40%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			font-size: 24px;
+		}
+
+		canvas {
+			display: none;
+			/* ẩn canvas ban đầu */
+		}
 	</style>
 </head>
 
 <body>
+	<div id="loading">Loading game...</div>
 	<canvas id="game-canvas"></canvas>
 
 	<script src="wasm_exec.js"></script>
@@ -23,6 +37,8 @@
 		const go = new Go();
 
 		WebAssembly.instantiateStreaming(fetch("game.wasm"), go.importObject).then((result) => {
+			document.getElementById("loading").style.display = "none";
+			document.getElementById("game-canvas").style.display = "block";
 			go.run(result.instance);
 		});
 	</script>
