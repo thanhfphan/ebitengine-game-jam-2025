@@ -2,6 +2,7 @@ package game
 
 import (
 	"image/color"
+	"runtime"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/thanhfphan/ebitengj2025/internal/ui"
@@ -79,7 +80,12 @@ func (s *MainMenuScene) Enter(g *Game) {
 		makeBtn("Settings", y+btnH+gapY, func() {
 			g.PushScene(NewSettingsScene())
 		}),
-		// makeBtn("Quit", y+2*(btnH+gapY), func() { g.State = GameStateQuit }),
+		makeBtn("Quit", y+2*(btnH+gapY), func() {
+			if runtime.GOARCH == "wasm" && runtime.GOOS == "js" {
+				return
+			}
+			g.State = GameStateQuit
+		}),
 	)
 
 }
