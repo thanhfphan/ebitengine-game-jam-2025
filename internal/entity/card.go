@@ -14,8 +14,8 @@ type Card struct {
 	RequiredIngredients []string // If Type is CartRecipe, this is the list of required ingredients
 }
 
-func NewCard(x, y float64, name string, cartType CartType) *Card {
-	entity := NewEntity(TypeCard, name, x, y)
+func NewCard(name string, cartType CartType) *Card {
+	entity := NewEntity(TypeCard, name)
 	return &Card{
 		Entity: *entity,
 		Type:   cartType,

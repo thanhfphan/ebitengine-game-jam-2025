@@ -42,18 +42,6 @@ func NewAssetManager() *AssetManager {
 	}
 }
 
-func (am *AssetManager) GetCardImage(cardID string) *ebiten.Image {
-	// TODO: Implement actual image loading
-	img := ebiten.NewImage(80, 120)
-	return img
-}
-
-func (am *AssetManager) GetCardBackImage() *ebiten.Image {
-	// TODO: Implement actual card back image loading
-	img := ebiten.NewImage(80, 120)
-	return img
-}
-
 func (am *AssetManager) LoadImage(id string, path string) error {
 	img, _, err := ebitenutil.NewImageFromFile(path)
 	if err != nil {

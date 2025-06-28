@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -10,12 +11,8 @@ import (
 	"github.com/thanhfphan/ebitengj2025/internal/am"
 	"github.com/thanhfphan/ebitengj2025/internal/card"
 	"github.com/thanhfphan/ebitengj2025/internal/entity"
-	"github.com/thanhfphan/ebitengj2025/internal/renderer"
 	"github.com/thanhfphan/ebitengj2025/internal/rules"
 	"github.com/thanhfphan/ebitengj2025/internal/ui"
-	"github.com/thanhfphan/ebitengj2025/internal/view"
-	"github.com/thanhfphan/ebitengj2025/internal/world"
-	"golang.org/x/image/font"
 )
 
 var (
@@ -44,8 +41,6 @@ type Game struct {
 	DebugMode bool
 
 	AssetManager     *am.AssetManager
-	Renderer         *renderer.Renderer
-	World            *world.World
 	CurrentUIManager *ui.Manager
 	AIManager        *ai.Manager
 	CardManager      *card.Manager
@@ -56,8 +51,6 @@ type Game struct {
 
 func New() (*Game, error) {
 	assetManager := am.NewAssetManager()
-	renderer := renderer.New(assetManager)
-	world := world.New()
 	aiManager := ai.NewManager()
 	cardManager := card.NewManager()
 	turnManager := rules.NewTurnManager()
@@ -66,8 +59,6 @@ func New() (*Game, error) {
 		State:        GameStateNormal,
 		Players:      []*entity.Player{},
 		AssetManager: assetManager,
-		Renderer:     renderer,
-		World:        world,
 		AIManager:    aiManager,
 		CardManager:  cardManager,
 		TurnManager:  turnManager,
@@ -127,21 +118,20 @@ func New() (*Game, error) {
 	return g, nil
 }
 
-func (g *Game) setupSoloMatch(botCount int) []*ui.UIBotHand {
+func (g *Game) setupGameData(botCount int) []*ui.UIBotHand {
+	g.Players = []*entity.Player{}
+	botHands := []*ui.UIBotHand{}
 	g.CardManager.LoadDeck("default")
 	g.TurnManager.Reset()
-	g.Players = []*entity.Player{}
-	g.Player = nil
-	botHands := []*ui.UIBotHand{}
 
-	g.Player = entity.NewPlayer("P0", entity.TypePlayer, 0, 0)
+	g.Player = entity.NewPlayer("P0", entity.TypePlayer)
 	g.Players = append(g.Players, g.Player)
 	g.TurnManager.AddPlayer(g.Player.ID, false)
 
 	defaultFont := g.AssetManager.GetFont("nunito", 32)
 
 	for i := 1; i <= botCount; i++ {
-		bot := entity.NewPlayer(fmt.Sprintf("B%d", i), entity.TypeBot, 0, 0)
+		bot := entity.NewPlayer(fmt.Sprintf("B%d", i), entity.TypeBot)
 		g.Players = append(g.Players, bot)
 		g.TurnManager.AddPlayer(bot.ID, true)
 		g.AIManager.RegisterBot(bot.ID, ai.NewEasyBot())
@@ -152,6 +142,7 @@ func (g *Game) setupSoloMatch(botCount int) []*ui.UIBotHand {
 	}
 
 	g.CardManager.DealHands(g.Players)
+
 	return botHands
 }
 
@@ -168,7 +159,6 @@ func (g *Game) Update() error {
 		g.CurrentUIManager.Update()
 	}
 
-	g.Renderer.Update()
 	g.AssetManager.Update()
 
 	if g.State == GameStateQuit {
@@ -180,7 +170,7 @@ func (g *Game) Update() error {
 
 // Draw implements ebiten.Game.
 func (g *Game) Draw(screen *ebiten.Image) {
-	screen.Fill(g.Renderer.BackgroundColor())
+	screen.Fill(color.RGBA{0x00, 0x00, 0x00, 0xFF})
 
 	currentScene := g.CurrentScene()
 	if currentScene != nil {
@@ -214,53 +204,6 @@ func (g *Game) HandleInput() {
 		if g.CurrentUIManager != nil {
 			g.CurrentUIManager.HandleMouseUp(mx, my)
 		}
-	}
-}
-
-func (g *Game) UpdateHands(playerHand *ui.UIHand, botHands []*ui.UIBotHand) {
-	if g.Player == nil {
-		return
-	}
-
-	// Get fonts for card text
-	fonts := map[string]font.Face{
-		"title":    g.AssetManager.GetFont("nunito", 16),
-		"subtitle": g.AssetManager.GetFont("nunito", 12),
-		"body":     g.AssetManager.GetFont("nunito", 10),
-	}
-
-	// Convert entity.TableStack to view.TableStack for highlighting
-	viewTableStack := ToViewTableStack(g.CardManager.TableStack)
-
-	// Update player's hand
-	cardImages := make(map[string]*ebiten.Image)
-	viewCards := make([]view.Card, 0, len(g.Player.Hand))
-
-	for _, id := range g.Player.OrderHand {
-		card := g.Player.GetCard(id)
-		viewCards = append(viewCards, ToViewCard(card))
-		cardImg := g.AssetManager.GetCardImage(card.ID)
-		if cardImg == nil {
-			cardImg = ebiten.NewImage(80, 120)
-		}
-		cardImages[card.ID] = cardImg
-	}
-	playerHand.UpdateCards(viewCards, cardImages, viewTableStack, fonts)
-
-	// Update bot hands
-	cardBackImage := g.AssetManager.GetImage("card_back")
-	for i, botHand := range botHands {
-		if i+1 >= len(g.Players) {
-			continue
-		}
-
-		// Index 0 is the player, so we start from index 1
-		bot := g.Players[i+1]
-		botViewCards := make([]view.Card, 0, len(bot.Hand))
-		for _, card := range bot.Hand {
-			botViewCards = append(botViewCards, ToViewCard(card))
-		}
-		botHand.UpdateCards(botViewCards, cardBackImage)
 	}
 }
 

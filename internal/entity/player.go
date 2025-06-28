@@ -6,8 +6,8 @@ type Player struct {
 	OrderHand []string
 }
 
-func NewPlayer(name string, ttype Type, posX, posY float64) *Player {
-	entity := NewEntity(ttype, name, posX, posY)
+func NewPlayer(name string, ttype Type) *Player {
+	entity := NewEntity(ttype, name)
 
 	return &Player{
 		Entity:    *entity,

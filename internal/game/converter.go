@@ -11,13 +11,11 @@ func ToViewCard(card *entity.Card) view.Card {
 		cardType = "recipe"
 	}
 
-	icon := "+" // TODO: Extract icon from card data
-
 	return view.Card{
 		ID:                     card.ID,
 		Type:                   cardType,
 		Name:                   card.Name,
-		Icon:                   icon,
+		Icon:                   "", // TODO: Extract icon from card data
 		IngredientID:           card.IngredientID,
 		RequiredIngredientIDs:  card.RequiredIngredients,
 		CurrentIngredientCount: make(map[string]bool),

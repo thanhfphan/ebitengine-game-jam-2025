@@ -2,47 +2,47 @@
 	"ingredients": [
 		{
 			"id": "I_BANHPHO",
-			"name": "Banhpho",
+			"name": "Noodle",
 			"icon": "i_banhpho.png"
 		},
 		{
 			"id": "I_NUOCDUNG",
-			"name": "Nuocdung",
+			"name": "Broth",
 			"icon": "i_nuocdung.png"
 		},
 		{
 			"id": "I_THITBO",
-			"name": "Thitbo",
+			"name": "Beef",
 			"icon": "i_thitbo.png"
 		},
 		{
 			"id": "I_BUN",
-			"name": "Bun",
+			"name": "Vermicelli",
 			"icon": "i_bun.png"
 		},
 		{
 			"id": "I_BANHTRANG",
-			"name": "Banhtrang",
+			"name": "Rice Paper",
 			"icon": "i_banhtrang.png"
 		},
 		{
 			"id": "I_TOM",
-			"name": "Tom",
+			"name": "Shrimp",
 			"icon": "i_tom.png"
 		},
 		{
 			"id": "I_RAUSONG",
-			"name": "Rausong",
+			"name": "Herbs",
 			"icon": "i_rausong.png"
 		},
 		{
 			"id": "I_BANHMI",
-			"name": "Banhmi",
+			"name": "Bread",
 			"icon": "i_banhmi.png"
 		},
 		{
 			"id": "I_THITHEO",
-			"name": "Thitheo",
+			"name": "Pork",
 			"icon": "i_thitheo.png"
 		}
 	]

@@ -17,7 +17,6 @@ type UICard struct {
 	ID             string
 	X, Y           int
 	Width, Height  int
-	Image          *ebiten.Image
 	BorderColor    color.RGBA
 	HoverColor     color.RGBA
 	SelectedColor  color.RGBA
@@ -48,10 +47,9 @@ type UICard struct {
 	selected    bool
 }
 
-func NewUICard(id string, img *ebiten.Image, w, h int) *UICard {
+func NewUICard(id string, w, h int) *UICard {
 	return &UICard{
 		ID:                      id,
-		Image:                   img,
 		Width:                   w,
 		Height:                  h,
 		draggable:               false,
@@ -144,7 +142,7 @@ func (u *UICard) Draw(screen *ebiten.Image) {
 			if u.HighlightedRequirements[reqID] {
 				col = highlightText
 			}
-			text.Draw(screen, "• "+reqName, u.BodyFont, u.X+padding, reqY+i*15, col)
+			text.Draw(screen, "- "+reqName, u.BodyFont, u.X+padding, reqY+i*15, col)
 		}
 	}
 }

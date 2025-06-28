@@ -1,8 +1,6 @@
 package ui
 
 import (
-	"fmt"
-
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/thanhfphan/ebitengj2025/internal/view"
 	"golang.org/x/image/font"
@@ -145,7 +143,7 @@ func (h *UIHand) PlaySelected() bool {
 	return false
 }
 
-func (h *UIHand) UpdateCards(cards []view.Card, cardImages map[string]*ebiten.Image, tableStack view.TableStack, fonts map[string]font.Face) {
+func (h *UIHand) UpdateCards(cards []view.Card, tableStack view.TableStack, fonts map[string]font.Face, ingredientNames map[string]string) {
 	if len(cards) == 0 {
 		h.Cards = []*UICard{}
 		h.selectedCard = nil
@@ -154,17 +152,6 @@ func (h *UIHand) UpdateCards(cards []view.Card, cardImages map[string]*ebiten.Im
 
 	cardWidth := 80
 	cardHeight := 120
-
-	// Create a map of ingredient names for recipe requirements
-	ingredientNames := make(map[string]string)
-	for _, card := range cards {
-		if card.Type == "ingredient" {
-			ingredientNames[card.IngredientID] = card.Name
-		}
-	}
-	for _, card := range tableStack.MapIngredients {
-		ingredientNames[card.IngredientID] = card.Name
-	}
 
 	existingCards := make(map[string]*UICard)
 	for _, card := range h.Cards {
@@ -177,21 +164,12 @@ func (h *UIHand) UpdateCards(cards []view.Card, cardImages map[string]*ebiten.Im
 
 		if existing, ok := existingCards[card.ID]; ok {
 			uiCard = existing
-			if img := cardImages[card.ID]; img != nil {
-				uiCard.Image = img
-			}
 		} else {
-			img := cardImages[card.ID]
-			if img == nil {
-				fmt.Println("Card image not found for ID:", card.ID)
-				continue
-			}
-			uiCard = NewUICard(card.ID, img, cardWidth, cardHeight)
+			uiCard = NewUICard(card.ID, cardWidth, cardHeight)
+			uiCard.SetCardData(card, fonts["title"], fonts["subtitle"], fonts["body"])
+			uiCard.SetRequirementNames(ingredientNames)
+			uiCard.UpdateHightlightingHandRecipes(tableStack)
 		}
-
-		uiCard.SetCardData(card, fonts["title"], fonts["subtitle"], fonts["body"])
-		uiCard.SetRequirementNames(ingredientNames)
-		uiCard.UpdateHightlightingHandRecipes(tableStack)
 
 		overlap := 30
 		uiCard.X = h.X + i*cardWidth + overlap

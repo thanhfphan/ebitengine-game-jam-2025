@@ -6,6 +6,7 @@ import (
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/thanhfphan/ebitengj2025/internal/entity"
 	"github.com/thanhfphan/ebitengj2025/internal/ui"
@@ -104,11 +105,10 @@ func (s *PlayingScene) Enter(g *Game) {
 }
 
 func (s *PlayingScene) setupGame(g *Game) {
-	centerX, centerY := ScreenW/2, ScreenH/2
+	numBots := 3
+	s.botHands = g.setupGameData(numBots)
 
-	// Setup game
-	s.botHands = g.setupSoloMatch(3)
-	numBots := len(s.botHands)
+	// Position bot hands
 	reserved := math.Pi / 3
 	if numBots >= 4 {
 		reserved = 2 * math.Pi / 3
@@ -116,6 +116,7 @@ func (s *PlayingScene) setupGame(g *Game) {
 	arc := 2*math.Pi - reserved // For bots
 	angleGap := arc / float64(numBots+1)
 	startAngle := 3*math.Pi/2 + reserved/2
+	centerX, centerY := ScreenW/2, ScreenH/2
 	for i, hand := range s.botHands {
 		angle := math.Mod(startAngle+angleGap*float64(i+1), 2*math.Pi)
 		x := int(float64(centerX) + float64(TableRadius)*math.Cos(angle))
@@ -128,8 +129,6 @@ func (s *PlayingScene) Exit(g *Game) {
 }
 
 func (s *PlayingScene) Update(g *Game) {
-	// s.syncPauseState(g)
-
 	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
 		s.togglePause(g)
 		return
@@ -149,59 +148,52 @@ func (s *PlayingScene) Update(g *Game) {
 	}
 
 	g.UpdateTurn()
-	g.UpdateHands(s.playerHand, s.botHands)
 
-	s.UpdateTableCards(g)
+	s.UpdateHands(g)
 }
 
-func (s *PlayingScene) UpdateTableCards(g *Game) {
+func (s *PlayingScene) UpdateHands(g *Game) {
 	if s.tableCards == nil {
 		return
 	}
 
-	cardImages := make(map[string]*ebiten.Image)
-
-	for _, recipe := range g.CardManager.TableStack.GetCardsByType(entity.CardTypeRecipe) {
-		cardImg := g.AssetManager.GetCardImage(recipe.ID)
-		if cardImg != nil {
-			cardImages[recipe.ID] = cardImg
-		}
-	}
-
-	for _, ingredient := range g.CardManager.TableStack.GetCardsByType(entity.CardTypeIngredient) {
-		cardImg := g.AssetManager.GetCardImage(ingredient.ID)
-		if cardImg != nil {
-			cardImages[ingredient.ID] = cardImg
-		}
-	}
-
 	fonts := map[string]font.Face{
-		"title":    g.AssetManager.GetFont("nunito", 16),
+		"title":    g.AssetManager.GetFont("nunito", 14),
 		"subtitle": g.AssetManager.GetFont("nunito", 12),
 		"body":     g.AssetManager.GetFont("nunito", 10),
 	}
-
+	ingredientNames := g.CardManager.GetMapIngredientNames()
 	viewTableStack := ToViewTableStack(g.CardManager.TableStack)
-	s.tableCards.UpdateFromTableStack(viewTableStack, cardImages, fonts)
 
-	if s.playerHand != nil {
-		viewCards := make([]view.Card, 0)
-		if g.Player != nil {
-			for _, id := range g.Player.OrderHand {
-				card := g.Player.GetCard(id)
-				viewCards = append(viewCards, ToViewCard(card))
-				if cardImg := g.AssetManager.GetCardImage(card.ID); cardImg != nil {
-					cardImages[card.ID] = cardImg
-				}
-			}
+	// Update table cards
+	s.tableCards.UpdateFromTableStack(viewTableStack, fonts, ingredientNames)
+
+	// Update player's hand
+	viewPlayerCards := make([]view.Card, 0, len(g.Player.Hand))
+	for _, id := range g.Player.OrderHand {
+		card := g.Player.GetCard(id)
+		viewPlayerCards = append(viewPlayerCards, ToViewCard(card))
+	}
+	s.playerHand.UpdateCards(viewPlayerCards, viewTableStack, fonts, ingredientNames)
+
+	// Update bot hands
+	cardBackImage := g.AssetManager.GetImage("card_back")
+	for i, botHand := range s.botHands {
+		if i+1 >= len(g.Players) {
+			continue
 		}
-		s.playerHand.UpdateCards(viewCards, cardImages, viewTableStack, fonts)
+
+		// Index 0 is the player, so we start from index 1
+		bot := g.Players[i+1]
+		botViewCards := make([]view.Card, 0, len(bot.Hand))
+		for _, card := range bot.Hand {
+			botViewCards = append(botViewCards, ToViewCard(card))
+		}
+		botHand.UpdateCards(botViewCards, cardBackImage)
 	}
 }
 
 func (s *PlayingScene) Draw(screen *ebiten.Image, g *Game) {
-	g.Renderer.DrawWorld(screen, g.World)
-
 	if s.bgImage != nil {
 		op := &ebiten.DrawImageOptions{}
 
@@ -223,7 +215,7 @@ func (s *PlayingScene) Draw(screen *ebiten.Image, g *Game) {
 
 	if g.DebugMode {
 		mx, my := ebiten.CursorPosition()
-		g.Renderer.DrawDebug(screen, fmt.Sprintf("Cursor: %d, %d", mx, my))
+		ebitenutil.DebugPrint(screen, fmt.Sprintf("Cursor: %d, %d", mx, my))
 	}
 }
 

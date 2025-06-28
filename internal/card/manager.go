@@ -65,7 +65,7 @@ func (m *Manager) LoadDeck(theme string) error {
 
 	for _, r := range rcpFile.Recipes {
 		card := &entity.Card{
-			Entity:              *entity.NewEntity(entity.TypeCard, r.Name, 0, 0),
+			Entity:              *entity.NewEntity(entity.TypeCard, r.Name),
 			Type:                entity.CardTypeRecipe,
 			RequiredIngredients: r.Requires,
 		}
@@ -78,7 +78,7 @@ func (m *Manager) LoadDeck(theme string) error {
 			}
 
 			m.Deck = append(m.Deck, &entity.Card{
-				Entity:       *entity.NewEntity(entity.TypeCard, ing.Name, 0, 0),
+				Entity:       *entity.NewEntity(entity.TypeCard, ing.Name),
 				Type:         entity.CardTypeIngredient,
 				IngredientID: ingID,
 			})
@@ -87,6 +87,16 @@ func (m *Manager) LoadDeck(theme string) error {
 
 	m.shuffle(m.Deck)
 	return nil
+}
+
+func (m *Manager) GetMapIngredientNames() map[string]string {
+	result := make(map[string]string)
+	for _, card := range m.Deck {
+		if card.Type == entity.CardTypeIngredient {
+			result[card.IngredientID] = card.Name
+		}
+	}
+	return result
 }
 
 // shuffle performs Fisher‑Yates in‑place on the given slice.

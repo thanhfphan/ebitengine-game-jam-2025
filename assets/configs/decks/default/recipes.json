@@ -2,50 +2,82 @@
   "recipes": [
     {
       "id": "R_PHO",
-      "name": "Phở",
-      "requires": ["I_BANHPHO", "I_NUOCDUNG", "I_THITBO"],
+      "name": "Beef Pho",
+      "requires": [
+        "I_BANHPHO",
+        "I_NUOCDUNG",
+        "I_THITBO",
+        "I_RAUSONG"
+      ],
       "icon": "pho.png"
     },
     {
       "id": "R_BUNBO",
-      "name": "Bún bò",
-      "requires": ["I_BUN", "I_NUOCDUNG", "I_THITBO"],
+      "name": "Hue Noodle",
+      "requires": [
+        "I_BUN",
+        "I_NUOCDUNG",
+        "I_THITBO"
+      ],
       "icon": "bunbo.png"
     },
     {
       "id": "R_BANHMI",
-      "name": "Bánh mì thịt",
-      "requires": ["I_BANHMI", "I_THITHEO", "I_RAUSONG"],
+      "name": "Pork Bread",
+      "requires": [
+        "I_BANHMI",
+        "I_THITHEO",
+        "I_RAUSONG"
+      ],
       "icon": "banhmi_thit.png"
     },
     {
       "id": "R_BANHTRAMIENG",
-      "name": "Bánh tráng miền Trung",
-      "requires": ["I_BANHTRANG", "I_THITBO", "I_RAUSONG"],
+      "name": "Rice Wrap",
+      "requires": [
+        "I_BANHTRANG",
+        "I_THITBO",
+        "I_RAUSONG"
+      ],
       "icon": "banhtrang_trung.png"
     },
     {
       "id": "R_XOINUOCDUNG",
-      "name": "Xôi nước dùng bò",
-      "requires": ["I_NUOCDUNG", "I_THITBO"],
+      "name": "Sticky Soup",
+      "requires": [
+        "I_NUOCDUNG",
+        "I_THITBO"
+      ],
       "icon": "xoi_nuocdung.png"
     },
     {
       "id": "R_BUNCHA",
-      "name": "Bún chả",
-      "requires": ["I_BUN", "I_THITHEO", "I_RAUSONG"],
+      "name": "Grill Pork",
+      "requires": [
+        "I_BUN",
+        "I_THITHEO",
+        "I_RAUSONG"
+      ],
       "icon": "buncha.png"
     },
     {
       "id": "R_BANHMITOM",
-      "name": "Bánh mì tôm",
-      "requires": ["I_BANHMI", "I_TOM", "I_RAUSONG"],
+      "name": "Shrimp Bread",
+      "requires": [
+        "I_BANHMI",
+        "I_TOM",
+        "I_RAUSONG"
+      ],
       "icon": "banhmi_tom.png"
     },
     {
       "id": "R_BUNTHITBO",
-      "name": "Bún thịt bò",
-      "requires": ["I_BUN", "I_THITBO", "I_RAUSONG"],
+      "name": "Beef Vermicelli",
+      "requires": [
+        "I_BUN",
+        "I_THITBO",
+        "I_RAUSONG"
+      ],
       "icon": "bun_thitbo.png"
     }
   ]

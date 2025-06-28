@@ -3,6 +3,7 @@ package ui
 import (
 	"image/color"
 	"math"
+	"math/rand"
 	"slices"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -20,6 +21,8 @@ type UITableCards struct {
 	BorderColor     color.RGBA
 	BackgroundColor color.RGBA
 	BackgroundImage *ebiten.Image
+
+	needsResolveOverlaps bool
 
 	visible bool
 	zIndex  int
@@ -62,6 +65,11 @@ func (u *UITableCards) Update() {
 				card.Y = u.Y + int(dy*maxDistance) - card.Height/2
 			}
 		}
+	}
+
+	if u.needsResolveOverlaps {
+		u.resolveCardOverlaps()
+		u.needsResolveOverlaps = false
 	}
 }
 
@@ -124,13 +132,18 @@ func (u *UITableCards) HandleMouseUp(x, y int) bool {
 		return false
 	}
 
+	handle := false
 	for _, card := range u.Cards {
 		if card.HandleMouseUp(x, y) {
-			return true
+			handle = true
 		}
 	}
 
-	return false
+	if handle {
+		u.needsResolveOverlaps = true
+	}
+
+	return handle
 }
 
 func (u *UITableCards) ResetCanMakeDish() {
@@ -177,14 +190,10 @@ func (u *UITableCards) UpdateCanMakeDish(ingredientID string, tableStack view.Ta
 }
 
 // UpdateFromTableStack updates the UI cards based on the view.TableStack
-func (u *UITableCards) UpdateFromTableStack(tableStack view.TableStack, cardImages map[string]*ebiten.Image, fonts map[string]font.Face) {
+func (u *UITableCards) UpdateFromTableStack(tableStack view.TableStack, fonts map[string]font.Face, ingredientNames map[string]string) {
 	u.cleanupCards(tableStack)
 
-	// Create a map of ingredient names for recipe requirements
-	ingredientNames := make(map[string]string)
-	for _, ing := range tableStack.MapIngredients {
-		ingredientNames[ing.ID] = ing.Name
-	}
+	cardAdded := false
 
 	for _, recipe := range tableStack.MapRecipes {
 		found := false
@@ -197,26 +206,24 @@ func (u *UITableCards) UpdateFromTableStack(tableStack view.TableStack, cardImag
 		}
 
 		if !found {
-			img := cardImages[recipe.ID]
-			if img == nil {
-				continue
-			}
-
-			card := NewUICard(recipe.ID, img, 80, 120)
+			card := NewUICard(recipe.ID, 80, 120)
 			card.SetDraggable(true)
 			card.SetCardData(recipe, fonts["title"], fonts["subtitle"], fonts["body"])
 			card.SetRequirementNames(ingredientNames)
 			card.UpdateHightlightingHandRecipes(tableStack)
 
-			i := len(u.Cards) + 1
-			targetX := u.X - 100 + i*40
-			targetY := u.Y - u.Radius/2 - 20
+			// Place new cards in a more distributed way
+			angle := rand.Float64() * 2 * math.Pi
+			distance := float64(u.Radius) * 0.6 * rand.Float64()
+
+			targetX := u.X + int(math.Cos(angle)*distance) - card.Width/2
+			targetY := u.Y + int(math.Sin(angle)*distance) - card.Height/2
 
 			card.X = targetX
 			card.Y = targetY
 
 			u.Cards = append(u.Cards, card)
-			return
+			cardAdded = true
 		}
 	}
 
@@ -230,24 +237,27 @@ func (u *UITableCards) UpdateFromTableStack(tableStack view.TableStack, cardImag
 		}
 
 		if !found {
-			img := cardImages[ingredient.ID]
-			if img == nil {
-				continue
-			}
-
-			card := NewUICard(ingredient.ID, img, 80, 120)
+			card := NewUICard(ingredient.ID, 80, 120)
 			card.SetDraggable(true)
 			card.SetCardData(ingredient, fonts["title"], fonts["subtitle"], fonts["body"])
 
-			i := len(u.Cards) + 1
-			targetX := u.X - 80 + i*30
-			targetY := u.Y + u.Radius/2 - 60
+			// Place new cards in a more distributed way
+			angle := rand.Float64() * 2 * math.Pi
+			distance := float64(u.Radius) * 0.6 * rand.Float64()
+
+			targetX := u.X + int(math.Cos(angle)*distance) - card.Width/2
+			targetY := u.Y + int(math.Sin(angle)*distance) - card.Height/2
+
 			card.X = targetX
 			card.Y = targetY
 
 			u.Cards = append(u.Cards, card)
-			return
+			cardAdded = true
 		}
+	}
+
+	if cardAdded {
+		u.needsResolveOverlaps = true
 	}
 }
 
@@ -286,4 +296,85 @@ func (u *UITableCards) SetPosition(x, y int) {
 // Add a method to get all cards
 func (u *UITableCards) GetCards() []*UICard {
 	return u.Cards
+}
+
+// resolveCardOverlaps prevents cards from completely overlapping
+func (u *UITableCards) resolveCardOverlaps() {
+	const minVisibleWidth = 30 // Minimum visible width of a card
+
+	for i := 0; i < len(u.Cards); i++ {
+		for j := i + 1; j < len(u.Cards); j++ {
+			card1 := u.Cards[i]
+			card2 := u.Cards[j]
+
+			// Skip if either card is being dragged
+			if card1.IsDragging() || card2.IsDragging() {
+				continue
+			}
+
+			// Calculate overlap
+			overlapX := min(card1.X+card1.Width, card2.X+card2.Width) - max(card1.X, card2.X)
+			overlapY := min(card1.Y+card1.Height, card2.Y+card2.Height) - max(card1.Y, card2.Y)
+
+			// If there's significant overlap in both dimensions
+			if overlapX > card1.Width-minVisibleWidth && overlapY > 0 {
+				// Calculate push direction (from center of card1 to center of card2)
+				centerX1 := float64(card1.X) + float64(card1.Width)/2
+				centerY1 := float64(card1.Y) + float64(card1.Height)/2
+				centerX2 := float64(card2.X) + float64(card2.Width)/2
+				centerY2 := float64(card2.Y) + float64(card2.Height)/2
+
+				dirX := centerX2 - centerX1
+				dirY := centerY2 - centerY1
+
+				// Normalize direction
+				length := math.Sqrt(dirX*dirX + dirY*dirY)
+				if length > 0 {
+					dirX /= length
+					dirY /= length
+				} else {
+					// If centers are exactly the same, push in a random direction
+					dirX = 1
+					dirY = 0
+				}
+
+				// Push cards apart
+				pushAmount := float64(minVisibleWidth) / 2
+
+				// Ensure we don't push cards outside the table
+				newX1 := int(float64(card1.X) - dirX*pushAmount)
+				newY1 := int(float64(card1.Y) - dirY*pushAmount)
+				newX2 := int(float64(card2.X) + dirX*pushAmount)
+				newY2 := int(float64(card2.Y) + dirY*pushAmount)
+
+				// Check if new positions are within table bounds
+				u.constrainCardToTable(card1, newX1, newY1)
+				u.constrainCardToTable(card2, newX2, newY2)
+			}
+		}
+	}
+}
+
+// constrainCardToTable ensures a card stays within the table bounds
+func (u *UITableCards) constrainCardToTable(card *UICard, newX, newY int) {
+	// Calculate distance from new position to table center
+	centerX := newX + card.Width/2
+	centerY := newY + card.Height/2
+	dx := float64(centerX - u.X)
+	dy := float64(centerY - u.Y)
+	distance := math.Sqrt(dx*dx + dy*dy)
+
+	maxDistance := float64(u.Radius - card.Width/2)
+
+	// If new position is within bounds, apply it
+	if distance <= maxDistance {
+		card.X = newX
+		card.Y = newY
+	} else {
+		// Otherwise, place the card at the boundary
+		dx /= distance
+		dy /= distance
+		card.X = u.X + int(dx*maxDistance) - card.Width/2
+		card.Y = u.Y + int(dy*maxDistance) - card.Height/2
+	}
 }

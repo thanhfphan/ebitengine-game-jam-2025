@@ -14,15 +14,12 @@ type Entity struct {
 	ID         string
 	Name       string
 	EntityType Type
-	X, Y       float64
 }
 
-func NewEntity(entityType Type, name string, posX, posY float64) *Entity {
+func NewEntity(entityType Type, name string) *Entity {
 	return &Entity{
 		ID:         uuid.NewString(),
 		EntityType: entityType,
 		Name:       name,
-		X:          posX,
-		Y:          posY,
 	}
 }
