@@ -25,7 +25,7 @@ func (s *MainMenuScene) Enter(g *Game) {
 	s.uiManager = ui.NewManager()
 	g.CurrentUIManager = s.uiManager
 
-	s.bgImage = g.AssetManager.GetImage("main_bg")
+	s.bgImage = g.AssetManager.GetImage(ImageMainBG)
 
 	defaultFont := g.AssetManager.GetFont("nunito", 24)
 	titleFont := g.AssetManager.GetFont("nunito", 48)

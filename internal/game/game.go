@@ -32,6 +32,13 @@ const (
 	SoundSelect     = "sound_select"
 	SoundRecipeMade = "sound_recipe_made"
 	SoundPlay       = "sound_play"
+	SoundDrag       = "sound_drag"
+
+	ImageMainBG      = "main_bg"
+	ImagePlayBG      = "play_bg"
+	ImageTableBG     = "table_bg"
+	ImageCardBack    = "card_back"
+	ImageSettingIcon = "setting_icon"
 )
 
 type Game struct {
@@ -100,17 +107,20 @@ func New() (*Game, error) {
 	g.AssetManager.PlayMusic(MusicBackground)
 
 	// Images
-	if err := g.AssetManager.LoadImage("main_bg", "assets/images/backgrounds/main_bg.jpg"); err != nil {
+	if err := g.AssetManager.LoadImage(ImageMainBG, "assets/images/backgrounds/main_bg.jpg"); err != nil {
 		fmt.Println("Error loading background image:", err)
 	}
-	if err := g.AssetManager.LoadImage("play_bg", "assets/images/backgrounds/tet.jpg"); err != nil {
+	if err := g.AssetManager.LoadImage(ImagePlayBG, "assets/images/backgrounds/tet.jpg"); err != nil {
 		fmt.Println("Error loading background image:", err)
 	}
-	if err := g.AssetManager.LoadImage("table_bg", "assets/images/backgrounds/tablecard.png"); err != nil {
+	if err := g.AssetManager.LoadImage(ImageTableBG, "assets/images/backgrounds/tablecard.png"); err != nil {
 		fmt.Println("Error loading background image:", err)
 	}
-	if err := g.AssetManager.LoadImage("card_back", "assets/images/backgrounds/card_back.png"); err != nil {
+	if err := g.AssetManager.LoadImage(ImageCardBack, "assets/images/backgrounds/card_back.png"); err != nil {
 		fmt.Println("Error loading background image:", err)
+	}
+	if err := g.AssetManager.LoadImage(ImageSettingIcon, "assets/images/ui/setting_icon.png"); err != nil {
+		fmt.Println("Error loading setting icon:", err)
 	}
 
 	g.PushScene(NewMainMenuScene())

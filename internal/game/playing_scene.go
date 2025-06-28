@@ -49,11 +49,24 @@ func (s *PlayingScene) Enter(g *Game) {
 		return
 	}
 
-	s.bgImage = g.AssetManager.GetImage("play_bg")
-	tableBgImage := g.AssetManager.GetImage("table_bg")
+	s.bgImage = g.AssetManager.GetImage(ImagePlayBG)
+	tableBgImage := g.AssetManager.GetImage(ImageTableBG)
+	settingsIconImg := g.AssetManager.GetImage(ImageSettingIcon)
 
 	defaultFont := g.AssetManager.GetFont("nunito", 24)
 	centerX, centerY := ScreenW/2, ScreenH/2
+
+	if settingsIconImg != nil {
+		settingsBtn := ui.NewUIImageButton(ScreenW-60, 20, 40, 40, settingsIconImg)
+		settingsBtn.BackgroundColor = color.RGBA{0x00, 0x00, 0x00, 0x00} // Black
+		settingsBtn.HoverColor = color.RGBA{0xFF, 0xE0, 0x7A, 0xFF}
+		settingsBtn.PressedColor = color.RGBA{0xD9, 0xC3, 0x90, 0xFF}
+		settingsBtn.OnClick = func() {
+			s.togglePause(g)
+		}
+		s.uiManager.AddElement(settingsBtn)
+		s.elements = append(s.elements, settingsBtn)
+	}
 
 	// Setup table cards UI
 	s.tableCards = ui.NewUITableCards(centerX, centerY, TableRadius, tableBgImage)
@@ -177,7 +190,7 @@ func (s *PlayingScene) UpdateHands(g *Game) {
 	s.playerHand.UpdateCards(viewPlayerCards, viewTableStack, fonts, ingredientNames)
 
 	// Update bot hands
-	cardBackImage := g.AssetManager.GetImage("card_back")
+	cardBackImage := g.AssetManager.GetImage(ImageCardBack)
 	for i, botHand := range s.botHands {
 		if i+1 >= len(g.Players) {
 			continue

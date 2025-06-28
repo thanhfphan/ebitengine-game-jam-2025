@@ -25,6 +25,7 @@ type UIButton struct {
 	PressedColor    color.RGBA
 	TextColor       color.RGBA
 	Font            font.Face
+	Image           *ebiten.Image
 }
 
 func NewUIButton(x, y, width, height int, text string, font font.Face) *UIButton {
@@ -41,6 +42,25 @@ func NewUIButton(x, y, width, height int, text string, font font.Face) *UIButton
 		PressedColor:    color.RGBA{0x40, 0x40, 0x40, 0xff},
 		TextColor:       color.RGBA{0xff, 0xff, 0xff, 0xff},
 		Font:            font,
+		Image:           nil,
+	}
+}
+
+func NewUIImageButton(x, y, width, height int, image *ebiten.Image) *UIButton {
+	return &UIButton{
+		X:               x,
+		Y:               y,
+		Width:           width,
+		Height:          height,
+		Text:            "",
+		Visible:         true,
+		ZIndex:          0,
+		BackgroundColor: color.RGBA{0x60, 0x60, 0x60, 0xff},
+		HoverColor:      color.RGBA{0x80, 0x80, 0x80, 0xff},
+		PressedColor:    color.RGBA{0x40, 0x40, 0x40, 0xff},
+		TextColor:       color.RGBA{0xff, 0xff, 0xff, 0xff},
+		Font:            nil,
+		Image:           image,
 	}
 }
 
@@ -67,14 +87,35 @@ func (b *UIButton) Draw(screen *ebiten.Image) {
 		bgColor = b.HoverColor
 	}
 
-	vector.DrawFilledRect(screen, float32(b.X), float32(b.Y), float32(b.Width), float32(b.Height), bgColor, false)
+	if b.Image != nil {
+		op := &ebiten.DrawImageOptions{}
 
-	vector.DrawFilledRect(screen, float32(b.X), float32(b.Y), float32(b.Width), 1, color.RGBA{0x20, 0x20, 0x20, 0xff}, false)
-	vector.DrawFilledRect(screen, float32(b.X), float32(b.Y), 1, float32(b.Height), color.RGBA{0x20, 0x20, 0x20, 0xff}, false)
-	vector.DrawFilledRect(screen, float32(b.X+b.Width-1), float32(b.Y), 1, float32(b.Height), color.RGBA{0x20, 0x20, 0x20, 0xff}, false)
-	vector.DrawFilledRect(screen, float32(b.X), float32(b.Y+b.Height-1), float32(b.Width), 1, color.RGBA{0x20, 0x20, 0x20, 0xff}, false)
+		imgW, imgH := b.Image.Bounds().Dx(), b.Image.Bounds().Dy()
+		scaleX := float64(b.Width) / float64(imgW)
+		scaleY := float64(b.Height) / float64(imgH)
 
-	if b.Font != nil {
+		scale := scaleX
+		if scaleY < scaleX {
+			scale = scaleY
+		}
+
+		op.GeoM.Scale(scale, scale)
+
+		imgWidth, imgHeight := float64(imgW)*scale, float64(imgH)*scale
+		op.GeoM.Translate(
+			float64(b.X)+(float64(b.Width)-imgWidth)/2,
+			float64(b.Y)+(float64(b.Height)-imgHeight)/2,
+		)
+
+		screen.DrawImage(b.Image, op)
+	} else if b.Font != nil && b.Text != "" {
+		vector.DrawFilledRect(screen, float32(b.X), float32(b.Y), float32(b.Width), float32(b.Height), bgColor, false)
+		// Border
+		vector.DrawFilledRect(screen, float32(b.X), float32(b.Y), float32(b.Width), 1, color.RGBA{0x20, 0x20, 0x20, 0xff}, false)
+		vector.DrawFilledRect(screen, float32(b.X), float32(b.Y), 1, float32(b.Height), color.RGBA{0x20, 0x20, 0x20, 0xff}, false)
+		vector.DrawFilledRect(screen, float32(b.X+b.Width-1), float32(b.Y), 1, float32(b.Height), color.RGBA{0x20, 0x20, 0x20, 0xff}, false)
+		vector.DrawFilledRect(screen, float32(b.X), float32(b.Y+b.Height-1), float32(b.Width), 1, color.RGBA{0x20, 0x20, 0x20, 0xff}, false)
+
 		bounds := text.BoundString(b.Font, b.Text)
 		textWidth := bounds.Max.X - bounds.Min.X
 		textHeight := bounds.Max.Y - bounds.Min.Y
