@@ -24,20 +24,9 @@ task run-web # requires Taskfile
 # And then open browser at http://localhost:8080
 ```
 
-## Project Structure
+## HTML5 Build
 
-```
-.
-├── cmd/main.go         # Main entry point
-└── internal/           # Core game components
-    ├── ai/             # AI logic for bot players
-    ├── am/             # Asset management (images, sounds, fonts)
-    ├── card/           # Card game mechanics and deck management
-    ├── game/           # Core game logic and scene management
-    ├── rules/          # Game rules and turn management
-    ├── ui/             # UI components and rendering
-    └── view/           # View models for rendering
-```
+<https://thanhfphan.itch.io/food-cards>
 
 ## Game Overview
 
@@ -53,6 +42,20 @@ Food Cards is a card game where players collect ingredient cards and combine the
 ![Main Menu](/assets/images/demo/main.PNG)
 ![Gameplay](assets/images/demo/playing.PNG)
 
+## Project Structure
+
+```bash
+.
+├── cmd/main.go         # Main entry point
+└── internal/           # Core game components
+    ├── ai/             # AI logic for bot players
+    ├── am/             # Asset management (images, sounds, fonts)
+    ├── card/           # Card game mechanics and deck management
+    ├── game/           # Core game logic and scene management
+    ├── rules/          # Game rules and turn management
+    ├── ui/             # UI components and rendering
+    └── view/           # View models for rendering
+```
 
 ## Assets Used
 
